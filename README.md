@@ -73,6 +73,7 @@ output/RSS/2025-06-28/
 - `RSS_FEEDS`: RSSフィードURLのJSON配列 (feeds.jsonより優先)
 - `OUTPUT_DIRECTORY`: 出力先 (default: `./output`)
 - `DEBUG`: デバッグモード (default: `false`) 
+- `GEMINI_MODEL`: Geminiモデル名 (default: `gemini-2.5-flash`)
 - `GEMINI_REQUEST_DELAY`: API呼び出し間隔ms (default: `1000`)
 
 ## 📚 詳細情報

@@ -4,32 +4,11 @@
   "lastUpdated": "2025-06-28",
   "feeds": [
     {
-      "name": "Hacker News",
-      "url": "https://feeds.feedburner.com/y-combinator-hacker-news",
-      "description": "Tech news and discussion",
-      "category": "tech",
-      "enabled": true
-    },
-    {
       "name": "TechCrunch",
       "url": "https://techcrunch.com/feed/",
       "description": "Startup and technology news",
       "category": "tech/startup",
       "enabled": true
-    },
-    {
-      "name": "Example AI News",
-      "url": "https://example.com/ai-news/rss",
-      "description": "Artificial Intelligence and Machine Learning news",
-      "category": "tech/ai",
-      "enabled": false
-    },
-    {
-      "name": "Example Programming",
-      "url": "https://example.com/programming/feed",
-      "description": "Programming tutorials and best practices",
-      "category": "tech/programming",
-      "enabled": false
     }
   ],
   "settings": {

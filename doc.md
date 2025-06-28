@@ -44,7 +44,7 @@ personal-rss/
 
 ### 2. AI処理 (llmProcessor.js)
 #### タグ付け処理
-- Gemini API (`gemini-pro`) を使用
+- Gemini API (`gemini-2.5-flash`) を使用
 - 記事タイトルと説明を分析
 - 階層タグシステム:
   - tech/ai, tech/web, tech/mobile, tech/devops
@@ -99,8 +99,21 @@ OUTPUT_DIRECTORY       # 出力ディレクトリ (default: ./output)
 DEBUG                  # デバッグモード (default: false)
 TIMEZONE               # タイムゾーン (default: Asia/Tokyo)
 MAX_RETRIES            # 最大リトライ回数 (default: 3)
+GEMINI_MODEL           # Geminiモデル名 (default: gemini-2.5-flash)
 GEMINI_REQUEST_DELAY   # API呼び出し間隔ms (default: 1000)
 RETRY_DELAY            # リトライ間隔ms (default: 1000)
+```
+
+### 利用可能なGeminiモデル
+```bash
+# 推奨モデル
+gemini-2.5-flash       # 最新の高速モデル (デフォルト)
+gemini-2.5-pro         # 高精度モデル
+
+# その他のモデル
+gemini-2.0-flash       # 前世代高速モデル
+gemini-1.5-flash       # 旧世代高速モデル
+gemini-1.5-pro         # 旧世代高精度モデル
 ```
 
 ### GitHub Secrets設定

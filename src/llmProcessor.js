@@ -10,7 +10,8 @@ const config = require('./config');
 class LLMProcessor {
   constructor() {
     this.apiKey = config.getGeminiApiKey();
-    this.baseUrl = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent';
+    this.model = config.getGeminiModel();
+    this.baseUrl = `https://generativelanguage.googleapis.com/v1beta/models/${this.model}:generateContent`;
     this.requestDelay = config.getGeminiRequestDelay();
   }
 

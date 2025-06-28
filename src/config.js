@@ -94,6 +94,10 @@ class Config {
     return parseInt(process.env.GEMINI_REQUEST_DELAY || '1000', 10);
   }
 
+  getGeminiModel() {
+    return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+  }
+
   isDebugMode() {
     return process.env.DEBUG === 'true';
   }
