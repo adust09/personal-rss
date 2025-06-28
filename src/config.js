@@ -1,6 +1,5 @@
 /**
  * Configuration management using environment variables
- * Replaces Google Apps Script PropertiesService
  */
 
 class Config {

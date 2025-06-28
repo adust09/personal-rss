@@ -1,6 +1,5 @@
 /**
  * Utility functions
- * Replaces Google Apps Script Utilities and other helper functions
  */
 
 const fs = require('fs').promises;
@@ -10,7 +9,7 @@ const config = require('./config');
 
 class Utils {
   /**
-   * Sleep/delay function to replace Utilities.sleep()
+   * Sleep/delay function
    * @param {number} milliseconds 
    */
   static async sleep(milliseconds) {

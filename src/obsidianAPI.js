@@ -1,5 +1,5 @@
 /**
- * File Output System (replacing Obsidian API)
+ * File Output System
  * Creates markdown files with YAML frontmatter for processed articles
  */
 

@@ -2,7 +2,7 @@
 
 /**
  * Main orchestration script
- * Replaces Google Apps Script Code.gs with daily trigger functionality
+ * Handles RSS feed processing workflow
  */
 
 const feedFetcher = require('./feedFetcher');

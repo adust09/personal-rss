@@ -1,6 +1,6 @@
 /**
  * RSS Feed Fetcher
- * Replaces Google Apps Script UrlFetchApp and XmlService functionality
+ * Handles RSS feed retrieval and parsing
  */
 
 const Parser = require('rss-parser');

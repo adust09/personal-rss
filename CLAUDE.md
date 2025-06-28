@@ -4,49 +4,71 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-RSS Feeder - Google Apps Script system that fetches RSS feeds daily, processes articles with Gemini API for tagging and summarization, and creates organized markdown files in Obsidian via Local REST API.
+RSS Feeder - GitHub Actions + Node.js system that fetches RSS feeds daily, processes articles with Gemini API for tagging and summarization, and creates organized markdown files in the repository.
 
 ## Architecture
 
-This is a Google Apps Script (GAS) project with the following planned structure:
-- `Code.gs` - Main orchestration script with daily trigger (8 AM)
-- `Config.gs` - Configuration management via PropertiesService
-- `FeedFetcher.gs` - RSS feed retrieval using UrlFetchApp and XmlService
-- `LLMProcessor.gs` - Gemini API integration for tagging and summarization
-- `ObsidianAPI.gs` - Obsidian Local REST API client (https://127.0.0.1:27123)
-- `Utils.gs` - Utility functions
+This is a Node.js project running on GitHub Actions with the following structure:
+- `src/main.js` - Main orchestration script 
+- `src/config.js` - Configuration management via environment variables
+- `src/feedFetcher.js` - RSS feed retrieval using rss-parser and axios
+- `src/llmProcessor.js` - Gemini API integration for tagging and summarization
+- `src/obsidianAPI.js` - File output system for markdown generation
+- `src/utils.js` - Utility functions
+- `.github/workflows/rss-feeder.yml` - GitHub Actions workflow
 
 ## Development Commands
 
-Since this is a GAS project, development happens in the Google Apps Script web interface:
-
 **Setup**:
-- Deploy via Google Apps Script web interface
-- Configure PropertiesService with API keys and feed URLs
-- Set up daily trigger: `ScriptApp.newTrigger('main').timeBased().everyDays(1).atHour(8).create()`
+```bash
+npm install
+```
+
+**Local Testing**:
+```bash
+# Set environment variables
+export GEMINI_API_KEY="your-api-key"
+export RSS_FEEDS='["https://example.com/feed.xml"]'
+
+# Run full process
+npm start
+
+# Test mode (limited articles)
+node src/main.js test
+
+# Health check
+node src/main.js health
+```
+
+**GitHub Actions**:
+- Automatic daily execution at 8:00 AM JST (23:00 UTC)
+- Manual execution via GitHub Actions interface
+- Test mode available via workflow dispatch
 
 **Configuration Management**:
-- All settings managed via GAS PropertiesService
-- Required keys: `gemini_api_key`, `obsidian_api_key`, `obsidian_api_url`, feed URLs list
+- All settings managed via environment variables
+- GitHub Secrets for sensitive data: `GEMINI_API_KEY`, `RSS_FEEDS`
+- Optional configuration: `OUTPUT_DIRECTORY`, `DEBUG`, `TIMEZONE`, etc.
 
 **Testing**:
-- Manual execution via GAS interface
-- Log monitoring via GAS console
-- Obsidian vault verification for output files
+- Local execution with test mode
+- GitHub Actions logs for monitoring
+- Output file verification in `output/` directory
 
 ## Key Processing Flow
 
-1. **Feed Retrieval**: Fetch RSS feeds using UrlFetchApp, parse with XmlService
+1. **Feed Retrieval**: Fetch RSS feeds using axios, parse with rss-parser
 2. **AI Processing**: Send article titles to Gemini API for hierarchical tagging (tech/ai, tech/web, cryptography, etc.)
 3. **Grouping**: Group articles by tags
 4. **Summarization**: Generate Japanese summaries for each tag group via Gemini API
-5. **Obsidian Integration**: Create organized markdown files in vault via Local REST API
+5. **File Output**: Create organized markdown files in repository with automatic Git commit
 
 ## Output Structure
 
-Files created in Obsidian vault:
+Files created in repository:
 ```
-RSS/YYYY-MM-DD/
+output/RSS/YYYY-MM-DD/
+├── index.md         # Daily overview
 ├── tech/
 │   ├── ai.md
 │   └── web.md
@@ -59,20 +81,19 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 
 **Required APIs**:
 - Gemini API for tagging and summarization
-- Obsidian Local REST API plugin (port 27123)
 
-**GAS Built-in Services**:
-- UrlFetchApp (RSS fetching)
-- XmlService (RSS parsing)
-- PropertiesService (configuration)
-- ScriptApp (trigger management)
+**Node.js Dependencies**:
+- rss-parser (RSS parsing)
+- axios (HTTP requests)
+- date-fns (date formatting)
+- js-yaml (YAML frontmatter)
 
 ## Important Constraints
 
-**GAS Limitations**:
-- 6-minute execution time limit
-- API call rate limits
-- Memory constraints for large datasets
+**GitHub Actions Limitations**:
+- 6-hour execution time limit (typically runs in ~5-10 minutes)
+- Rate limits for API calls
+- Repository storage considerations for output files
 
 **Language Requirements**:
 - All summaries generated in Japanese, even for English articles
@@ -80,19 +101,25 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 
 ## Security Considerations
 
-- API keys stored securely in GAS PropertiesService
-- HTTPS endpoints for Obsidian Local REST API
+- API keys stored securely in GitHub Secrets
 - No sensitive data in source code
+- Environment variable-based configuration
 
 ## Error Handling Strategy
 
 - Feed fetch failures: Log and skip
-- Gemini API failures: Log and skip
-- Obsidian API failures: Log and retry (max 3 times)
+- Gemini API failures: Log and skip with retry logic
+- File creation failures: Log and retry (max 3 times)
 - Zero articles per tag: Skip file creation
 
 ## Current Project State
 
-**Status**: Specification phase - no implementation files exist yet
-**Repository**: Contains only README.md (specification) and LICENSE
-**Next Steps**: Implement GAS files according to specification
+**Status**: Production ready - all implementation complete
+**Repository**: Contains complete Node.js implementation with GitHub Actions
+**Features**: 
+- Daily automated RSS processing
+- Gemini API integration for intelligent tagging
+- Japanese summarization
+- Organized markdown output
+- Error handling and logging
+- Test and health check modes
