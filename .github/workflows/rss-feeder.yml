@@ -1,0 +1,122 @@
+name: RSS Feeder
+
+on:
+  schedule:
+    # Run daily at 8:00 AM JST (23:00 UTC)
+    - cron: '0 23 * * *'
+  workflow_dispatch:
+    # Allow manual triggering
+    inputs:
+      test_mode:
+        description: 'Run in test mode (limited articles)'
+        required: false
+        default: 'false'
+        type: boolean
+
+jobs:
+  rss-feeder:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Create output directory
+      run: mkdir -p output
+
+    - name: Run RSS Feeder (Test Mode)
+      if: ${{ github.event.inputs.test_mode == 'true' }}
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        RSS_FEEDS: ${{ secrets.RSS_FEEDS }}
+        OUTPUT_DIRECTORY: ./output
+        DEBUG: 'true'
+        TIMEZONE: 'Asia/Tokyo'
+        MAX_RETRIES: 3
+        GEMINI_REQUEST_DELAY: 2000
+      run: node src/main.js test
+
+    - name: Run RSS Feeder (Full Mode)
+      if: ${{ github.event.inputs.test_mode != 'true' }}
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        RSS_FEEDS: ${{ secrets.RSS_FEEDS }}
+        OUTPUT_DIRECTORY: ./output
+        DEBUG: 'false'
+        TIMEZONE: 'Asia/Tokyo'
+        MAX_RETRIES: 3
+        GEMINI_REQUEST_DELAY: 1000
+      run: node src/main.js
+
+    - name: Check output files
+      run: |
+        echo "Generated files:"
+        find output -type f -name "*.md" | head -20
+        echo "Total files generated: $(find output -type f -name "*.md" | wc -l)"
+
+    - name: Commit and push output files
+      if: success()
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add output/
+        
+        # Check if there are changes to commit
+        if git diff --staged --quiet; then
+          echo "No changes to commit"
+        else
+          git commit -m "📰 RSS Feed update - $(date +'%Y-%m-%d %H:%M:%S JST')
+
+          🤖 Generated with RSS Feeder
+          
+          Co-Authored-By: Claude <noreply@anthropic.com>"
+          git push
+        fi
+
+    - name: Upload output as artifact (on failure)
+      if: failure()
+      uses: actions/upload-artifact@v4
+      with:
+        name: rss-output-failed-${{ github.run_number }}
+        path: output/
+        retention-days: 7
+
+    - name: Health check notification
+      if: failure()
+      run: |
+        echo "RSS Feeder failed. Check the logs for details."
+        echo "Timestamp: $(date)"
+        echo "Run ID: ${{ github.run_id }}"
+
+  health-check:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch'
+    timeout-minutes: 5
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+
+    - name: Install dependencies
+      run: npm ci
+
+    - name: Run health check
+      env:
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      run: node src/main.js health

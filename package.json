@@ -1,0 +1,32 @@
+{
+  "name": "personal-rss-feeder",
+  "version": "1.0.0",
+  "description": "RSS Feeder system that fetches feeds, processes articles with Gemini API for tagging and summarization, and creates organized markdown files",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "node src/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "rss",
+    "feeder",
+    "gemini",
+    "ai",
+    "markdown",
+    "obsidian"
+  ],
+  "author": "adust09",
+  "license": "MIT",
+  "dependencies": {
+    "rss-parser": "^3.13.0",
+    "axios": "^1.6.0",
+    "date-fns": "^3.0.0",
+    "js-yaml": "^4.1.0"
+  },
+  "devDependencies": {
+    "eslint": "^8.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}

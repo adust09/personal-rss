@@ -1,0 +1,31 @@
+{
+  "name": "RSS Feeds Configuration",
+  "description": "Configuration file for RSS feeds (alternative to environment variable)",
+  "feeds": [
+    {
+      "name": "Tech News Example",
+      "url": "https://example.com/tech-news/feed.xml",
+      "description": "Technology news and updates",
+      "enabled": false
+    },
+    {
+      "name": "AI/ML News Example", 
+      "url": "https://example.com/ai-news/rss",
+      "description": "Artificial Intelligence and Machine Learning news",
+      "enabled": false
+    },
+    {
+      "name": "Programming Example",
+      "url": "https://example.com/programming/feed",
+      "description": "Programming tutorials and best practices",
+      "enabled": false
+    }
+  ],
+  "notes": [
+    "This is an example configuration file.",
+    "To use this file, enable feeds by setting 'enabled': true",
+    "Alternatively, use the RSS_FEEDS environment variable with a JSON array of URLs",
+    "Example: RSS_FEEDS='[\"https://example.com/feed1.xml\", \"https://example.com/feed2.xml\"]'",
+    "Environment variable takes precedence over this config file"
+  ]
+}
