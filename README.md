@@ -9,17 +9,21 @@ GitHub Actionsで毎日RSSフィードを取得し、Gemini APIでタグ付け�
 # 依存関係インストール
 npm install
 
+# RSS フィード設定
+# config/feeds.json を編集して enabled: true に設定
+
 # GitHub Secrets設定
 # Settings > Secrets > Actions で以下を設定：
 # - GEMINI_API_KEY: Gemini API キー
-# - RSS_FEEDS: ["https://example.com/feed.xml", "https://example2.com/rss"]
 ```
 
 ### 2. ローカル実行
 ```bash
 # 環境変数設定
 export GEMINI_API_KEY="your-api-key"
-export RSS_FEEDS='["https://example.com/feed.xml"]'
+
+# config/feeds.json でフィード設定を確認
+# (または環境変数 RSS_FEEDS を使用)
 
 # 実行
 npm start
@@ -47,11 +51,26 @@ output/RSS/2025-06-28/
 
 ## 🔧 設定
 
-### 必須環境変数
-- `GEMINI_API_KEY`: Gemini API キー
-- `RSS_FEEDS`: RSSフィードURLのJSON配列
+### 必須設定
+- `GEMINI_API_KEY`: Gemini API キー (環境変数)
+- `config/feeds.json`: RSSフィード設定ファイル
+
+### フィード設定 (config/feeds.json)
+```json
+{
+  "feeds": [
+    {
+      "name": "Hacker News",
+      "url": "https://feeds.feedburner.com/y-combinator-hacker-news",
+      "description": "Tech news and discussion",
+      "enabled": true
+    }
+  ]
+}
+```
 
 ### オプション環境変数
+- `RSS_FEEDS`: RSSフィードURLのJSON配列 (feeds.jsonより優先)
 - `OUTPUT_DIRECTORY`: 出力先 (default: `./output`)
 - `DEBUG`: デバッグモード (default: `false`) 
 - `GEMINI_REQUEST_DELAY`: API呼び出し間隔ms (default: `1000`)

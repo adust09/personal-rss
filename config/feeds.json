@@ -1,31 +1,46 @@
 {
   "name": "RSS Feeds Configuration",
-  "description": "Configuration file for RSS feeds (alternative to environment variable)",
+  "description": "Configuration file for RSS feeds",
+  "lastUpdated": "2025-06-28",
   "feeds": [
     {
-      "name": "Tech News Example",
-      "url": "https://example.com/tech-news/feed.xml",
-      "description": "Technology news and updates",
-      "enabled": false
+      "name": "Hacker News",
+      "url": "https://feeds.feedburner.com/y-combinator-hacker-news",
+      "description": "Tech news and discussion",
+      "category": "tech",
+      "enabled": true
     },
     {
-      "name": "AI/ML News Example", 
+      "name": "TechCrunch",
+      "url": "https://techcrunch.com/feed/",
+      "description": "Startup and technology news",
+      "category": "tech/startup",
+      "enabled": true
+    },
+    {
+      "name": "Example AI News",
       "url": "https://example.com/ai-news/rss",
       "description": "Artificial Intelligence and Machine Learning news",
+      "category": "tech/ai",
       "enabled": false
     },
     {
-      "name": "Programming Example",
+      "name": "Example Programming",
       "url": "https://example.com/programming/feed",
       "description": "Programming tutorials and best practices",
+      "category": "tech/programming",
       "enabled": false
     }
   ],
+  "settings": {
+    "defaultEnabled": false,
+    "checkInterval": "daily",
+    "maxArticlesPerFeed": 50
+  },
   "notes": [
-    "This is an example configuration file.",
-    "To use this file, enable feeds by setting 'enabled': true",
-    "Alternatively, use the RSS_FEEDS environment variable with a JSON array of URLs",
-    "Example: RSS_FEEDS='[\"https://example.com/feed1.xml\", \"https://example.com/feed2.xml\"]'",
-    "Environment variable takes precedence over this config file"
+    "Set 'enabled': true to activate a feed",
+    "The RSS_FEEDS environment variable takes precedence over this file",
+    "Environment variable format: RSS_FEEDS='[\"https://feed1.xml\", \"https://feed2.xml\"]'",
+    "Use category field for organizational purposes (optional)"
   ]
 }

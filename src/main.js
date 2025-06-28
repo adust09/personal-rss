@@ -84,8 +84,9 @@ class RSSFeeder {
     // Check RSS feeds
     const feeds = config.getRssFeeds();
     if (!feeds || feeds.length === 0) {
-      Utils.log('warn', 'No RSS feeds configured. Please set RSS_FEEDS environment variable.');
-      Utils.log('info', 'Example: RSS_FEEDS=\'["https://example.com/feed.xml","https://another.com/rss"]\'');
+      Utils.log('warn', 'No RSS feeds configured. Please configure feeds in config/feeds.json or set RSS_FEEDS environment variable.');
+      Utils.log('info', 'Environment variable example: RSS_FEEDS=\'["https://example.com/feed.xml"]\'');
+      Utils.log('info', 'Or edit config/feeds.json and set enabled: true for desired feeds');
       throw new Error('No RSS feeds configured');
     }
     
@@ -188,9 +189,12 @@ Commands:
   test          Run with limited data for testing
   help          Show this help
 
+Configuration:
+  config/feeds.json      Required: RSS feeds configuration file
+  GEMINI_API_KEY         Required: Your Gemini API key (environment variable)
+
 Environment Variables:
-  GEMINI_API_KEY          Required: Your Gemini API key
-  RSS_FEEDS              Required: JSON array of RSS feed URLs
+  RSS_FEEDS              Optional: JSON array of RSS feed URLs (overrides feeds.json)
   OUTPUT_DIRECTORY       Optional: Output directory (default: ./output)
   DEBUG                  Optional: Enable debug mode (true/false)
   TIMEZONE               Optional: Timezone (default: Asia/Tokyo)
@@ -198,7 +202,11 @@ Environment Variables:
   GEMINI_REQUEST_DELAY   Optional: Delay between API calls in ms (default: 1000)
 
 Example:
+  # Edit config/feeds.json to enable feeds, then:
   export GEMINI_API_KEY="your-api-key"
+  node src/main.js
+  
+  # Or use environment variable:
   export RSS_FEEDS='["https://example.com/feed.xml"]'
   node src/main.js
       `);

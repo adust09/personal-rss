@@ -1,6 +1,9 @@
 /**
- * Configuration management using environment variables
+ * Configuration management using environment variables and JSON files
  */
+
+const fs = require('fs');
+const path = require('path');
 
 class Config {
   constructor() {
@@ -29,15 +32,44 @@ class Config {
   }
 
   getRssFeeds() {
+    // First try environment variable (for backward compatibility)
     const feedsString = process.env.RSS_FEEDS;
-    if (!feedsString) {
-      return [];
+    if (feedsString) {
+      try {
+        return JSON.parse(feedsString);
+      } catch (error) {
+        console.error('Error parsing RSS_FEEDS environment variable:', error);
+      }
     }
     
+    // Read from feeds.json file
     try {
-      return JSON.parse(feedsString);
+      const feedsPath = path.join(process.cwd(), 'config', 'feeds.json');
+      
+      if (!fs.existsSync(feedsPath)) {
+        console.warn('feeds.json file not found at:', feedsPath);
+        return [];
+      }
+      
+      const feedsData = JSON.parse(fs.readFileSync(feedsPath, 'utf8'));
+      
+      // Extract enabled feeds
+      if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
+        return feedsData.feeds
+          .filter(feed => feed.enabled === true)
+          .map(feed => feed.url);
+      }
+      
+      // Fallback: if feeds.json has different structure
+      if (Array.isArray(feedsData)) {
+        return feedsData;
+      }
+      
+      console.warn('Invalid feeds.json structure');
+      return [];
+      
     } catch (error) {
-      console.error('Error parsing RSS_FEEDS environment variable:', error);
+      console.error('Error reading feeds.json:', error.message);
       return [];
     }
   }

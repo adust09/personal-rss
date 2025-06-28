@@ -67,13 +67,34 @@ personal-rss/
 
 ## 設定管理
 
+### フィード設定 (config/feeds.json)
+```json
+{
+  "name": "RSS Feeds Configuration",
+  "description": "Configuration file for RSS feeds",
+  "feeds": [
+    {
+      "name": "フィード名",
+      "url": "https://example.com/feed.xml",
+      "description": "フィードの説明",
+      "category": "tech/ai",
+      "enabled": true
+    }
+  ],
+  "settings": {
+    "defaultEnabled": false,
+    "checkInterval": "daily"
+  }
+}
+```
+
 ### 環境変数
 ```bash
 # 必須
 GEMINI_API_KEY          # Gemini API キー
-RSS_FEEDS              # RSSフィードURLのJSON配列
 
 # オプション
+RSS_FEEDS              # RSSフィードURLのJSON配列 (feeds.jsonより優先)
 OUTPUT_DIRECTORY       # 出力ディレクトリ (default: ./output)
 DEBUG                  # デバッグモード (default: false)
 TIMEZONE               # タイムゾーン (default: Asia/Tokyo)
@@ -84,7 +105,6 @@ RETRY_DELAY            # リトライ間隔ms (default: 1000)
 
 ### GitHub Secrets設定
 - `GEMINI_API_KEY`: Google AI Studio から取得
-- `RSS_FEEDS`: JSON配列形式 `["url1", "url2"]`
 
 ## 出力形式
 
