@@ -110,29 +110,13 @@ class LLMProcessor {
    * @returns {Promise<Array<string>>} Array of tags
    */
   async getArticleTags(article) {
-    const prompt = `以下の記事のタイトルと内容を分析して、適切な階層的タグを付けてください。
-利用可能なタグカテゴリ:
-- tech/ai (人工知能、機械学習、LLM関連)
-- tech/web (ウェブ開発、フロントエンド、バックエンド)
-- tech/mobile (モバイル開発、iOS、Android)
-- tech/devops (DevOps、インフラ、クラウド)
-- tech/security (セキュリティ、暗号化、プライバシー)
-- tech/programming (プログラミング言語、フレームワーク)
-- tech/data (データサイエンス、データベース、ビッグデータ)
-- tech/hardware (ハードウェア、IoT、半導体)
-- business (ビジネス、経営、マーケティング)
-- science (科学、研究、学術)
-- lifestyle (ライフスタイル、健康、エンターテイメント)
-- news (ニュース、時事、政治)
-- finance (金融、投資、暗号通貨)
-- education (教育、学習、スキル開発)
-
-記事情報:
-タイトル: ${article.title}
-説明: ${article.description}
-カテゴリ: ${article.categories?.join(', ') || 'なし'}
-
-最も適切なタグを1-3個選んで、カンマ区切りで返してください。タグのみを返し、他の説明は不要です。`;
+    // Load prompt template and replace variables
+    const promptTemplate = await Utils.loadPrompt('tagging.md');
+    const prompt = Utils.replacePromptVariables(promptTemplate, {
+      title: article.title,
+      description: article.description,
+      categories: article.categories?.join(', ') || 'なし'
+    });
 
     const response = await Utils.retry(
       () => this.makeGeminiRequest(prompt),
@@ -195,19 +179,12 @@ class LLMProcessor {
       .map(article => `- ${article.title}\n  ${article.description || '説明なし'}`)
       .join('\n\n');
 
-    const prompt = `以下の「${tag}」カテゴリの記事群について、日本語で簡潔な要約を作成してください。
-
-記事一覧:
-${articleList}
-
-要約の要件:
-- 日本語で記述
-- 200-300文字程度
-- 主要なトピックやトレンドを含める
-- 読者にとって有用な洞察を提供
-- 記事のタイトルは含めない（内容の要約のみ）
-
-要約:`;
+    // Load prompt template and replace variables
+    const promptTemplate = await Utils.loadPrompt('summarization.md');
+    const prompt = Utils.replacePromptVariables(promptTemplate, {
+      tag: tag,
+      articleList: articleList
+    });
 
     try {
       await Utils.sleep(this.requestDelay);

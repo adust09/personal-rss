@@ -113,6 +113,10 @@ class Config {
   getTemplatesDirectory() {
     return process.env.TEMPLATES_DIRECTORY || "./templates";
   }
+
+  getPromptsDirectory() {
+    return process.env.PROMPTS_DIRECTORY || "./prompts";
+  }
 }
 
 module.exports = new Config();

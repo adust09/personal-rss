@@ -116,17 +116,3 @@ node src/main.js test
 # Obsidian接続テスト
 curl -H "Authorization: Bearer YOUR_API_KEY" https://127.0.0.1:27124//vault/
 ```
-
-## 🔄 GitHub Actionsからの移行
-
-この仕様はGitHub Actionsからローカルサーバー実行への移行版です：
-
-**変更点:**
-- ❌ GitHub Actions → ✅ ローカル実行
-- ❌ ファイル出力 → ✅ Obsidian Local REST API
-- ❌ クラウド実行 → ✅ ローカルスケジューラー
-
-**利点:**
-- ✅ Obsidian Vaultに直接ファイル作成
-- ✅ リアルタイム更新
-- ✅ ローカル環境での完全制御

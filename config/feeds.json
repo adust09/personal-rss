@@ -9,6 +9,55 @@
       "description": "Startup and technology news",
       "category": "tech/startup",
       "enabled": true
+    },
+    {
+      "name": "Feed for eprint(APPLICATIONS)",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=APPLICATIONS",
+      "description": "Cryptography news(APPLICATIONS)",
+      "category": "tech/cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for eprint(PROTOCOLS)",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=PROTOCOLS",
+      "description": "Cryptography news(PROTOCOLS)",
+      "category": "tech/cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for FOUNDATIONS",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=FOUNDATIONS",
+      "description": "Cryptography news(FOUNDATIONS)",
+      "category": "tech/cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for IMPLEMENTATION",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=IMPLEMENTATION",
+      "description": "Cryptography news(IMPLEMENTATION)",
+      "category": "tech/cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for SECRETKEY",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=SECRETKEY",
+      "description": "Cryptography news(SECRETKEY)",
+      "category": "tech/cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for PUBLICKEY",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=PUBLICKEY",
+      "description": "Cryptography news(PUBLICKEY)",
+      "category": "tech/cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for ATTACKS",
+      "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=ATTACKS",
+      "description": "Cryptography news(ATTACKS)",
+      "category": "tech/cryptography",
+      "enabled": true
     }
   ],
   "settings": {
