@@ -82,9 +82,17 @@ class ObsidianAPI {
 
     const basePath = this.getDateVaultPath(date);
 
-    // Use tag as filename directly (no hierarchical directory structure)
-    const fileName = `${tag}.md`;
-    const vaultPath = `${basePath}/${fileName}`;
+    // Handle hierarchical tags (e.g., tech/ai -> tech directory)
+    const tagParts = tag.split("/");
+    const fileName = `${tagParts[tagParts.length - 1]}.md`;
+
+    let vaultPath;
+    if (tagParts.length > 1) {
+      // Create path for hierarchical tags
+      vaultPath = `${basePath}/${tagParts[0]}/${fileName}`;
+    } else {
+      vaultPath = `${basePath}/${fileName}`;
+    }
 
     // Generate YAML frontmatter
     const frontmatter = Utils.generateYamlFrontmatter({
@@ -188,7 +196,16 @@ class ObsidianAPI {
 
       // Tags
       if (article.tags && article.tags.length > 0) {
-        articlesList += `**タグ**: ${article.tags.join(", ")}\n\n`;
+        const formattedTags = article.tags.map(tag => {
+          if (tag.includes('/')) {
+            // Split hierarchical tags: tech/ai -> #tech #ai
+            return tag.split('/').map(part => `#${part}`).join(' ');
+          } else {
+            // Single tag: business -> #business
+            return `#${tag}`;
+          }
+        });
+        articlesList += `**タグ**: ${formattedTags.join(" ")}\n\n`;
       }
 
       articlesList += `---\n\n`;
