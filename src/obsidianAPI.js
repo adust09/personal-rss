@@ -159,6 +159,55 @@ class ObsidianAPI {
   }
 
   /**
+   * Generate articles list for markdown content
+   * @param {Array<Object>} articles 
+   * @returns {string} Formatted articles list
+   */
+  generateArticlesList(articles) {
+    let articlesList = "";
+    articles.forEach((article, index) => {
+      articlesList += `### ${index + 1}. ${article.title}\n\n`;
+
+      // Article metadata
+      articlesList += `**リンク**: [${article.link}](${article.link})\n\n`;
+
+      if (article.feedTitle) {
+        articlesList += `**ソース**: ${article.feedTitle}\n\n`;
+      }
+
+      if (article.creator) {
+        articlesList += `**著者**: ${article.creator}\n\n`;
+      }
+
+      articlesList += `**公開日**: ${this.formatDateForDisplay(
+        article.pubDate
+      )}\n\n`;
+
+      // Article description/content
+      if (article.description && article.description.trim()) {
+        articlesList += `**概要**:\n${article.description}\n\n`;
+      }
+
+      // Tags
+      if (article.tags && article.tags.length > 0) {
+        const formattedTags = article.tags.map(tag => {
+          if (tag.includes('/')) {
+            // Split hierarchical tags: tech/ai -> #tech #ai
+            return tag.split('/').map(part => `#${part}`).join(' ');
+          } else {
+            // Single tag: business -> #business
+            return `#${tag}`;
+          }
+        });
+        articlesList += `**タグ**: ${formattedTags.join(" ")}\n\n`;
+      }
+
+      articlesList += "---\n\n";
+    });
+    return articlesList;
+  }
+
+  /**
    * Generate markdown content for a tag using template
    * @param {string} tag
    * @param {Object} tagData
@@ -368,6 +417,99 @@ class ObsidianAPI {
     Utils.log(
       "info",
       `Output generation complete. Files created in Obsidian vault: ${vaultPath}`
+    );
+  }
+
+  /**
+   * Create keyword summary file
+   * @param {string} keyword 
+   * @param {Object} keywordData 
+   * @param {Date} date 
+   * @returns {Promise<void>}
+   */
+  async createKeywordSummaryFile(keyword, keywordData, date = new Date()) {
+    const { articles, summary, count } = keywordData;
+    
+    // Create sanitized filename
+    const sanitizedKeyword = Utils.sanitizeFilename(keyword);
+    const vaultPath = this.getDateVaultPath(date);
+    const filePath = `${vaultPath}/word/${sanitizedKeyword}.md`;
+
+    const dateString = Utils.formatDate(date);
+    const timestamp = new Date().toISOString();
+
+    // Create YAML frontmatter
+    const frontmatter = `---
+date: '${dateString}'
+keyword: ${keyword}
+count: ${count}
+type: keyword_summary
+generated: '${timestamp}'
+---`;
+
+    // Create article list
+    const articlesList = this.generateArticlesList(articles);
+
+    // Create markdown content
+    const content = `${frontmatter}
+
+# ${keyword} - ${dateString}
+
+## 概要
+
+${summary}
+
+**記事数**: ${count}件
+
+## 記事一覧
+
+${articlesList}
+
+---
+
+*このファイルは自動生成されました - ${this.formatDateForDisplay(new Date())}*
+`;
+
+    try {
+      await this.createObsidianFile(filePath, content);
+      Utils.log('info', `Created keyword summary file: ${filePath} (${count} articles)`);
+    } catch (error) {
+      Utils.log('error', `Failed to create keyword summary file for "${keyword}": ${error.message}`);
+      throw error;
+    }
+  }
+
+  /**
+   * Generate output for keyword-based articles
+   * @param {Object} keywordData 
+   * @param {Date} date 
+   * @returns {Promise<void>}
+   */
+  async generateKeywordOutput(keywordData, date = new Date()) {
+    if (!keywordData || Object.keys(keywordData).length === 0) {
+      Utils.log('info', 'No keyword data to generate output');
+      return;
+    }
+
+    // Test connection first
+    const connected = await this.testConnection();
+    if (!connected) {
+      throw new Error(
+        "Cannot connect to Obsidian Local REST API. Please ensure Obsidian is running with the plugin enabled."
+      );
+    }
+
+    Utils.log('info', `Creating keyword summary files for ${Object.keys(keywordData).length} keywords`);
+
+    // Create keyword summary files
+    for (const [keyword, data] of Object.entries(keywordData)) {
+      await this.createKeywordSummaryFile(keyword, data, date);
+    }
+
+    const vaultPath = this.getDateVaultPath(date);
+    Utils.log(
+      'info',
+      `Keyword output generation complete. Files created in: ${vaultPath}/word/`
     );
   }
 }

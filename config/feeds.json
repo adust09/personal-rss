@@ -1,7 +1,8 @@
 {
   "name": "RSS Feeds Configuration",
   "description": "Configuration file for RSS feeds",
-  "lastUpdated": "2025-06-28",
+  "lastUpdated": "2025-06-29",
+  "watchWords": ["privacy", "FHE", "MPC", "ZK", "VOLE"],
   "feeds": [
     {
       "name": "TechCrunch",

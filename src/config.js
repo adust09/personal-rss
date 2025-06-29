@@ -165,6 +165,46 @@ class Config {
       return [];
     }
   }
+
+  /**
+   * Get watch words for keyword-based article filtering
+   * @returns {Array<string>} Array of watch words
+   */
+  getWatchWords() {
+    // First try environment variable
+    const watchWordsString = process.env.WATCH_WORDS;
+    if (watchWordsString) {
+      try {
+        const words = JSON.parse(watchWordsString);
+        if (Array.isArray(words)) {
+          return words.filter(word => typeof word === 'string' && word.trim().length > 0);
+        }
+      } catch (error) {
+        console.error("Error parsing WATCH_WORDS environment variable:", error);
+      }
+    }
+
+    // Read from feeds.json file
+    try {
+      const feedsPath = path.join(process.cwd(), "config", "feeds.json");
+
+      if (!fs.existsSync(feedsPath)) {
+        return [];
+      }
+
+      const feedsData = JSON.parse(fs.readFileSync(feedsPath, "utf8"));
+
+      // Extract watch words from feeds.json
+      if (feedsData.watchWords && Array.isArray(feedsData.watchWords)) {
+        return feedsData.watchWords.filter(word => typeof word === 'string' && word.trim().length > 0);
+      }
+
+      return [];
+    } catch (error) {
+      console.error("Error reading watch words from feeds.json:", error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = new Config();
