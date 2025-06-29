@@ -46,12 +46,23 @@ class RSSFeeder {
         return;
       }
 
-      // Step 3: Generate output files
+      // Step 3: Process keyword-based articles (if watch words are configured)
+      Utils.log("info", "🔍 Processing keyword-based articles...");
+      const keywordData = await llmProcessor.processKeywordArticles(articles);
+
+      // Step 4: Generate output files
       Utils.log("info", "📁 Generating output files...");
       await fileOutput.generateOutput(processedData);
 
+      // Step 5: Generate keyword output files (if any keyword data exists)
+      if (keywordData && Object.keys(keywordData).length > 0) {
+        Utils.log("info", "📝 Generating keyword summary files...");
+        await fileOutput.generateKeywordOutput(keywordData);
+      }
+
       // Summary
       const totalCategories = Object.keys(processedData).length;
+      const totalKeywords = keywordData ? Object.keys(keywordData).length : 0;
       const totalProcessedArticles = Object.values(processedData).reduce(
         (sum, data) => sum + data.count,
         0
@@ -63,6 +74,16 @@ class RSSFeeder {
         "info",
         `📊 Summary: ${totalProcessedArticles} articles processed into ${totalCategories} categories`
       );
+      if (totalKeywords > 0) {
+        const totalKeywordArticles = Object.values(keywordData).reduce(
+          (sum, data) => sum + data.count,
+          0
+        );
+        Utils.log(
+          "info",
+          `🔍 Keywords: ${totalKeywordArticles} articles matched ${totalKeywords} keywords`
+        );
+      }
       Utils.log("info", `⏱️  Execution time: ${executionTime} seconds`);
     } catch (error) {
       Utils.log("error", "❌ RSS Feeder failed:", error.message);
@@ -172,8 +193,19 @@ class RSSFeeder {
 
       const processedData = await llmProcessor.processArticles(limitedArticles);
 
+      // Test keyword processing
+      Utils.log("info", "🔍 Processing keyword-based articles...");
+      const keywordData = await llmProcessor.processKeywordArticles(limitedArticles);
+
       if (processedData && Object.keys(processedData).length > 0) {
         await fileOutput.generateOutput(processedData);
+        
+        // Test keyword output
+        if (keywordData && Object.keys(keywordData).length > 0) {
+          Utils.log("info", "📝 Generating keyword summary files...");
+          await fileOutput.generateKeywordOutput(keywordData);
+        }
+        
         Utils.log("info", "✅ Test run completed successfully");
       } else {
         Utils.log("warn", "Test run generated no processed data");

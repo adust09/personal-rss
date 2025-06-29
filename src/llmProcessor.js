@@ -244,6 +244,143 @@ class LLMProcessor {
     
     return processedData;
   }
+
+  /**
+   * Filter articles that contain any of the watch words
+   * @param {Array<Object>} articles 
+   * @param {Array<string>} watchWords 
+   * @returns {Object} Articles grouped by keywords
+   */
+  filterArticlesByKeywords(articles, watchWords) {
+    if (!watchWords || watchWords.length === 0) {
+      return {};
+    }
+
+    const keywordArticles = {};
+
+    for (const article of articles) {
+      const title = (article.title || '').toLowerCase();
+      const description = (article.description || '').toLowerCase();
+      const content = title + ' ' + description;
+
+      // Check each watch word
+      for (const keyword of watchWords) {
+        const keywordLower = keyword.toLowerCase();
+        
+        // Check if article content contains the keyword
+        if (content.includes(keywordLower)) {
+          if (!keywordArticles[keyword]) {
+            keywordArticles[keyword] = [];
+          }
+          keywordArticles[keyword].push(article);
+          break; // Article matched one keyword, don't check others
+        }
+      }
+    }
+
+    // Remove keywords with no articles
+    Object.keys(keywordArticles).forEach(keyword => {
+      if (keywordArticles[keyword].length === 0) {
+        delete keywordArticles[keyword];
+      }
+    });
+
+    Utils.log('info', `Found articles for ${Object.keys(keywordArticles).length} keywords: ${Object.keys(keywordArticles).join(', ')}`);
+    
+    return keywordArticles;
+  }
+
+  /**
+   * Generate keyword-specific summary
+   * @param {string} keyword 
+   * @param {Array<Object>} articles 
+   * @returns {Promise<string>} Generated summary
+   */
+  async generateKeywordSummary(keyword, articles) {
+    if (!articles || articles.length === 0) {
+      return '';
+    }
+
+    Utils.log('info', `Generating keyword summary for "${keyword}" (${articles.length} articles)`);
+
+    const articleList = articles
+      .map(article => `- ${article.title}\n  ${article.description || '説明なし'}`)
+      .join('\n\n');
+
+    // Load prompt template and replace variables
+    const promptTemplate = await Utils.loadPrompt('keyword-summary.md');
+    const prompt = Utils.replacePromptVariables(promptTemplate, {
+      keyword: keyword,
+      articleList: articleList
+    });
+
+    try {
+      await Utils.sleep(this.requestDelay);
+      const response = await Utils.retry(
+        () => this.makeGeminiRequest(prompt),
+        3,
+        2000
+      );
+      
+      const summary = response.trim();
+      Utils.log('info', `Generated keyword summary for "${keyword}" (${summary.length} characters)`);
+      return summary;
+    } catch (error) {
+      Utils.log('error', `Failed to generate keyword summary for "${keyword}": ${error.message}`);
+      return `${keyword}に関する記事 ${articles.length}件を収集しました。詳細は各記事をご確認ください。`;
+    }
+  }
+
+  /**
+   * Process articles for keyword-based filtering and summarization
+   * @param {Array<Object>} articles 
+   * @returns {Promise<Object>} Processed keyword data
+   */
+  async processKeywordArticles(articles) {
+    const config = require('./config');
+    const watchWords = config.getWatchWords();
+
+    if (!watchWords || watchWords.length === 0) {
+      Utils.log('info', 'No watch words configured, skipping keyword processing');
+      return {};
+    }
+
+    if (!articles || articles.length === 0) {
+      Utils.log('info', 'No articles to process for keywords');
+      return {};
+    }
+
+    Utils.log('info', `Starting keyword processing for ${articles.length} articles with ${watchWords.length} watch words: ${watchWords.join(', ')}`);
+
+    // Filter articles by keywords
+    const keywordArticles = this.filterArticlesByKeywords(articles, watchWords);
+
+    if (Object.keys(keywordArticles).length === 0) {
+      Utils.log('info', 'No articles matched any watch words');
+      return {};
+    }
+
+    // Generate summaries for each keyword
+    const processedData = {};
+
+    for (const [keyword, keywordMatchedArticles] of Object.entries(keywordArticles)) {
+      if (keywordMatchedArticles.length === 0) {
+        continue;
+      }
+
+      const summary = await this.generateKeywordSummary(keyword, keywordMatchedArticles);
+      
+      processedData[keyword] = {
+        articles: keywordMatchedArticles,
+        summary: summary,
+        count: keywordMatchedArticles.length
+      };
+    }
+
+    Utils.log('info', `Keyword processing complete. Generated ${Object.keys(processedData).length} keyword summaries`);
+    
+    return processedData;
+  }
 }
 
 module.exports = new LLMProcessor();
