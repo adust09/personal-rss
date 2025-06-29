@@ -14,49 +14,70 @@
       "name": "Feed for eprint(APPLICATIONS)",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=APPLICATIONS",
       "description": "Cryptography news(APPLICATIONS)",
-      "category": "tech/cryptography",
+      "category": "cryptography/applications",
       "enabled": true
     },
     {
       "name": "Feed for eprint(PROTOCOLS)",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=PROTOCOLS",
       "description": "Cryptography news(PROTOCOLS)",
-      "category": "tech/cryptography",
+      "category": "cryptography/protocols",
       "enabled": true
     },
     {
       "name": "Feed for FOUNDATIONS",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=FOUNDATIONS",
       "description": "Cryptography news(FOUNDATIONS)",
-      "category": "tech/cryptography",
+      "category": "cryptography/foundations",
       "enabled": true
     },
     {
       "name": "Feed for IMPLEMENTATION",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=IMPLEMENTATION",
       "description": "Cryptography news(IMPLEMENTATION)",
-      "category": "tech/cryptography",
+      "category": "cryptography/implementation",
       "enabled": true
     },
     {
       "name": "Feed for SECRETKEY",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=SECRETKEY",
       "description": "Cryptography news(SECRETKEY)",
-      "category": "tech/cryptography",
+      "category": "cryptography/secretkey",
       "enabled": true
     },
     {
       "name": "Feed for PUBLICKEY",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=PUBLICKEY",
       "description": "Cryptography news(PUBLICKEY)",
-      "category": "tech/cryptography",
+      "category": "cryptography/publickey",
       "enabled": true
     },
     {
       "name": "Feed for ATTACKS",
       "url": "https://eprint.iacr.org/rss/rss.xml?order=recent&category=ATTACKS",
       "description": "Cryptography news(ATTACKS)",
-      "category": "tech/cryptography",
+      "category": "cryptography/attacks",
+      "enabled": true
+    },
+    {
+      "name": "Feed for zenn(LLM)",
+      "url": "https://zenn.dev/topics/llm/feed",
+      "description": "zenn(LLM)",
+      "category": "AI/LLM",
+      "enabled": true
+    },
+    {
+      "name": "Feed for zenn(Go)",
+      "url": "https://zenn.dev/topics/go/feed",
+      "description": "zenn(Go)",
+      "category": "tech/go",
+      "enabled": true
+    },
+    {
+      "name": "Feed for zenn(web)",
+      "url": "https://zenn.dev/topics/web/feed",
+      "description": "zenn(web)",
+      "category": "tech/go",
       "enabled": true
     }
   ],
