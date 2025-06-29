@@ -22,7 +22,11 @@
 # 依存関係インストール
 npm install
 
-# 環境変数設定
+# 環境変数設定（.envファイル推奨）
+cp .env.example .env
+# .envファイルを編集してAPIキーを設定
+
+# または直接環境変数設定
 export GEMINI_API_KEY="your-gemini-api-key"
 export OBSIDIAN_API_KEY="your-obsidian-api-key"
 
@@ -59,7 +63,13 @@ Obsidian Vault/
 
 ## 🔧 設定
 
-### 必須環境変数
+### 環境変数設定（.env ファイル推奨）
+```bash
+# .env.example をコピーして .env ファイルを作成
+cp .env.example .env
+```
+
+**必須変数:**
 - `GEMINI_API_KEY`: Gemini API キー
 - `OBSIDIAN_API_KEY`: Obsidian Local REST API キー
 
@@ -85,9 +95,9 @@ Obsidian Vault/
 - `GEMINI_REQUEST_DELAY`: API呼び出し間隔ms (default: `1000`)
 
 ## 📚 詳細情報
-- [技術仕様書](doc.md) - システム詳細、API仕様、エラーハンドリング等
-- [スケジューラー設定](scheduler-setup.md) - 自動実行設定方法
-- [テスト仕様](test.md) - ユニットテスト項目
+- [技術仕様書](doc/doc.md) - システム詳細、API仕様、エラーハンドリング等
+- [スケジューラー設定](doc/scheduler-setup.md) - 自動実行設定方法
+- [テスト仕様](doc/test.md) - ユニットテスト項目
 - [CLAUDE.md](CLAUDE.md) - Claude Code向け開発ガイド
 
 ## 🐛 トラブルシューティング
@@ -99,7 +109,7 @@ Obsidian Vault/
 
 ### デバッグ実行
 ```bash
-# 詳細ログ表示
+# 詳細ログ表示（.envファイルでDEBUG=trueに設定するか）
 export DEBUG=true
 node src/main.js test
 

@@ -21,13 +21,12 @@ crontab -e
 
 ### 環境変数付きcron設定例
 ```bash
-# 環境変数を含む実行スクリプト作成
+# 環境変数を含む実行スクリプト作成（.envファイル推奨）
 cat > ~/run-rss-feeder.sh << 'EOF'
 #!/bin/bash
-export GEMINI_API_KEY="your-gemini-api-key"
-export OBSIDIAN_API_KEY="your-obsidian-api-key"
 export PATH="/usr/local/bin:$PATH"
 cd /path/to/personal-rss
+# .envファイルが設定済みの場合、追加の環境変数設定は不要
 node src/main.js
 EOF
 
@@ -50,8 +49,7 @@ After=network.target
 Type=oneshot
 User=your-username
 WorkingDirectory=/path/to/personal-rss
-Environment=GEMINI_API_KEY=your-gemini-api-key
-Environment=OBSIDIAN_API_KEY=your-obsidian-api-key
+# .envファイルを使用する場合、環境変数設定は不要
 ExecStart=/usr/bin/node src/main.js
 StandardOutput=journal
 StandardError=journal
@@ -85,8 +83,7 @@ sudo systemctl status rss-feeder.timer
 ### PowerShellスクリプト作成
 ```powershell
 # rss-feeder.ps1
-$env:GEMINI_API_KEY = "your-gemini-api-key"
-$env:OBSIDIAN_API_KEY = "your-obsidian-api-key"
+# .envファイルを使用する場合、環境変数設定は不要
 Set-Location "C:\path\to\personal-rss"
 node src/main.js
 ```
@@ -220,11 +217,11 @@ curl http://127.0.0.1:27123/vault/
 echo $GEMINI_API_KEY
 echo $OBSIDIAN_API_KEY
 
-# .envファイル使用（オプション）
-cat > .env << 'EOF'
-GEMINI_API_KEY=your-api-key
-OBSIDIAN_API_KEY=your-obsidian-key
-EOF
+# .envファイルの確認（推奨）
+cat .env
+# .envファイルがない場合は作成
+cp .env.example .env
+# .envファイルを編集してAPIキーを設定
 ```
 
 #### 3. パーミッションエラー

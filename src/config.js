@@ -5,6 +5,9 @@
 const fs = require('fs');
 const path = require('path');
 
+// Load environment variables from .env file
+require('dotenv').config();
+
 class Config {
   constructor() {
     this.validateRequiredEnvVars();

@@ -17,8 +17,12 @@ personal-rss/
 │   └── utils.js         # ユーティリティ関数
 ├── config/
 │   └── feeds.json       # フィード設定
-├── scheduler-setup.md   # スケジューラー設定ガイド
-├── test.md             # テスト仕様
+├── doc/
+│   ├── doc.md           # 技術仕様書（本ファイル）
+│   ├── scheduler-setup.md # スケジューラー設定ガイド
+│   └── test.md          # テスト仕様
+├── .env.example         # 環境変数テンプレート
+├── .gitignore          # Git除外設定
 └── package.json         # Node.js依存関係
 ```
 
@@ -31,11 +35,13 @@ personal-rss/
   - axios: HTTP リクエスト (RSS + Obsidian API)
   - date-fns: 日付操作
   - js-yaml: YAML frontmatter生成
+  - dotenv: 環境変数管理
 
 ## 処理フロー詳細
 
 ### 1. RSSフィード取得 (feedFetcher.js)
-- 環境変数 `RSS_FEEDS` からフィードURLリストを読み込み
+- `.env` ファイルまたは環境変数 `RSS_FEEDS` からフィードURLリストを読み込み
+- フォールバック: `config/feeds.json` ファイルからの読み込み
 - `axios` でHTTPリクエスト実行
 - `rss-parser` でXML解析
 - エラーハンドリング: 失敗したフィードはスキップ
@@ -90,7 +96,15 @@ personal-rss/
 }
 ```
 
-### 環境変数
+### 環境変数（.env ファイル推奨）
+
+#### .env ファイル設定
+```bash
+# .env.example をコピーして .env ファイルを作成
+cp .env.example .env
+```
+
+#### 環境変数一覧
 ```bash
 # 必須
 GEMINI_API_KEY          # Gemini API キー
@@ -105,6 +119,15 @@ MAX_RETRIES            # 最大リトライ回数 (default: 3)
 GEMINI_MODEL           # Geminiモデル名 (default: gemini-2.5-flash)
 GEMINI_REQUEST_DELAY   # API呼び出し間隔ms (default: 1000)
 RETRY_DELAY            # リトライ間隔ms (default: 1000)
+```
+
+#### .env ファイル例
+```bash
+# コピーして .env として保存し、実際の値を設定
+GEMINI_API_KEY=your-actual-gemini-api-key
+OBSIDIAN_API_KEY=your-actual-obsidian-api-key
+DEBUG=false
+OBSIDIAN_API_URL=http://127.0.0.1:27123
 ```
 
 ### 利用可能なGeminiモデル
@@ -185,7 +208,7 @@ Gemini APIで生成された日本語要約
 
 ### 実行フロー
 1. スケジューラーがNode.jsプロセス起動
-2. 環境変数読み込み
+2. dotenvで`.env`ファイルから環境変数読み込み
 3. Obsidian API接続確認
 4. RSS Feeder実行
 5. Obsidian Vaultに直接ファイル作成
@@ -197,7 +220,7 @@ Gemini APIで生成された日本語要約
 1. **フィード取得失敗**: 個別フィードをスキップ、継続実行
 2. **Gemini API失敗**: 指数バックオフでリトライ、最終的にスキップ
 3. **ファイル作成失敗**: リトライ後、エラーログ
-4. **システム全体失敗**: GitHub Actions失敗、通知
+4. **システム全体失敗**: ローカル実行失敗、ログ出力
 
 ### ログ管理
 - 構造化ログ（タイムスタンプ付き）
@@ -207,9 +230,10 @@ Gemini APIで生成された日本語要約
 ## セキュリティ考慮事項
 
 ### API キー管理
-- GitHub Secrets で暗号化保存
+- `.env` ファイルでローカル管理（`.gitignore` で除外済み）
 - 環境変数経由でのアクセス
 - ソースコードに機密情報含まず
+- `.env.example` でテンプレート提供
 
 ### ネットワークセキュリティ
 - HTTPS通信のみ
