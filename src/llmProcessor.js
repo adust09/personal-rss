@@ -110,29 +110,13 @@ class LLMProcessor {
    * @returns {Promise<Array<string>>} Array of tags
    */
   async getArticleTags(article) {
-    const prompt = `以下の記事のタイトルと内容を分析して、適切な階層的タグを付けてください。
-利用可能なタグカテゴリ:
-- tech/ai (人工知能、機械学習、LLM関連)
-- tech/web (ウェブ開発、フロントエンド、バックエンド)
-- tech/mobile (モバイル開発、iOS、Android)
-- tech/devops (DevOps、インフラ、クラウド)
-- tech/security (セキュリティ、暗号化、プライバシー)
-- tech/programming (プログラミング言語、フレームワーク)
-- tech/data (データサイエンス、データベース、ビッグデータ)
-- tech/hardware (ハードウェア、IoT、半導体)
-- business (ビジネス、経営、マーケティング)
-- science (科学、研究、学術)
-- lifestyle (ライフスタイル、健康、エンターテイメント)
-- news (ニュース、時事、政治)
-- finance (金融、投資、暗号通貨)
-- education (教育、学習、スキル開発)
-
-記事情報:
-タイトル: ${article.title}
-説明: ${article.description}
-カテゴリ: ${article.categories?.join(', ') || 'なし'}
-
-最も適切なタグを1-3個選んで、カンマ区切りで返してください。タグのみを返し、他の説明は不要です。`;
+    // Load prompt template and replace variables
+    const promptTemplate = await Utils.loadPrompt('tagging.md');
+    const prompt = Utils.replacePromptVariables(promptTemplate, {
+      title: article.title,
+      description: article.description,
+      categories: article.categories?.join(', ') || 'なし'
+    });
 
     const response = await Utils.retry(
       () => this.makeGeminiRequest(prompt),
@@ -153,20 +137,20 @@ class LLMProcessor {
   }
 
   /**
-   * Group articles by tags
-   * @param {Array<Object>} taggedArticles 
-   * @returns {Object} Articles grouped by tags
+   * Group articles by parent tags (from feeds)
+   * @param {Array<Object>} articles 
+   * @returns {Object} Articles grouped by parent tags
    */
-  groupArticlesByTags(taggedArticles) {
+  groupArticlesByParentTags(articles) {
     const grouped = {};
 
-    for (const article of taggedArticles) {
-      for (const tag of article.tags) {
-        if (!grouped[tag]) {
-          grouped[tag] = [];
-        }
-        grouped[tag].push(article);
+    for (const article of articles) {
+      const parentTag = article.feedParentTag || 'tech'; // Default to tech if not specified
+      
+      if (!grouped[parentTag]) {
+        grouped[parentTag] = [];
       }
+      grouped[parentTag].push(article);
     }
 
     // Sort articles in each group by publication date (newest first)
@@ -174,7 +158,7 @@ class LLMProcessor {
       grouped[tag].sort((a, b) => new Date(b.pubDate) - new Date(a.pubDate));
     }
 
-    Utils.log('info', `Grouped articles into ${Object.keys(grouped).length} categories`);
+    Utils.log('info', `Grouped articles into ${Object.keys(grouped).length} parent tag categories`);
     
     return grouped;
   }
@@ -195,19 +179,12 @@ class LLMProcessor {
       .map(article => `- ${article.title}\n  ${article.description || '説明なし'}`)
       .join('\n\n');
 
-    const prompt = `以下の「${tag}」カテゴリの記事群について、日本語で簡潔な要約を作成してください。
-
-記事一覧:
-${articleList}
-
-要約の要件:
-- 日本語で記述
-- 200-300文字程度
-- 主要なトピックやトレンドを含める
-- 読者にとって有用な洞察を提供
-- 記事のタイトルは含めない（内容の要約のみ）
-
-要約:`;
+    // Load prompt template and replace variables
+    const promptTemplate = await Utils.loadPrompt('summarization.md');
+    const prompt = Utils.replacePromptVariables(promptTemplate, {
+      tag: tag,
+      articleList: articleList
+    });
 
     try {
       await Utils.sleep(this.requestDelay);
@@ -230,7 +207,7 @@ ${articleList}
   }
 
   /**
-   * Process all articles: tag and generate summaries
+   * Process all articles: group by parent tags and generate summaries
    * @param {Array<Object>} articles 
    * @returns {Promise<Object>} Processed data with summaries
    */
@@ -240,32 +217,30 @@ ${articleList}
       return {};
     }
 
-    Utils.log('info', `Starting LLM processing for ${articles.length} articles`);
+    Utils.log('info', `Starting parent tag-based processing for ${articles.length} articles`);
 
-    // Step 1: Tag articles
-    const taggedArticles = await this.tagArticles(articles);
+    // Skip individual article tagging, use parent tags from feeds
+    // Group directly by parent tags
+    const groupedArticles = this.groupArticlesByParentTags(articles);
 
-    // Step 2: Group by tags
-    const groupedArticles = this.groupArticlesByTags(taggedArticles);
-
-    // Step 3: Generate summaries for each group
+    // Generate summaries for each parent tag group
     const processedData = {};
 
-    for (const [tag, tagArticles] of Object.entries(groupedArticles)) {
+    for (const [parentTag, tagArticles] of Object.entries(groupedArticles)) {
       if (tagArticles.length === 0) {
         continue;
       }
 
-      const summary = await this.generateSummary(tag, tagArticles);
+      const summary = await this.generateSummary(parentTag, tagArticles);
       
-      processedData[tag] = {
+      processedData[parentTag] = {
         articles: tagArticles,
         summary: summary,
         count: tagArticles.length
       };
     }
 
-    Utils.log('info', `LLM processing complete. Generated ${Object.keys(processedData).length} category summaries`);
+    Utils.log('info', `Parent tag processing complete. Generated ${Object.keys(processedData).length} parent tag summaries`);
     
     return processedData;
   }

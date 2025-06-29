@@ -113,6 +113,58 @@ class Config {
   getTemplatesDirectory() {
     return process.env.TEMPLATES_DIRECTORY || "./templates";
   }
+
+  getPromptsDirectory() {
+    return process.env.PROMPTS_DIRECTORY || "./prompts";
+  }
+
+  getRssFeedsWithTags() {
+    // First try environment variable (for backward compatibility)
+    const feedsString = process.env.RSS_FEEDS;
+    if (feedsString) {
+      try {
+        const urls = JSON.parse(feedsString);
+        // Environment variable only provides URLs, default to 'tech' parentTag
+        return urls.map(url => ({ url, parentTag: 'tech' }));
+      } catch (error) {
+        console.error("Error parsing RSS_FEEDS environment variable:", error);
+      }
+    }
+
+    // Read from feeds.json file
+    try {
+      const feedsPath = path.join(process.cwd(), "config", "feeds.json");
+
+      if (!fs.existsSync(feedsPath)) {
+        console.warn("feeds.json file not found at:", feedsPath);
+        return [];
+      }
+
+      const feedsData = JSON.parse(fs.readFileSync(feedsPath, "utf8"));
+
+      // Extract enabled feeds with parentTag
+      if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
+        return feedsData.feeds
+          .filter((feed) => feed.enabled === true)
+          .map((feed) => ({
+            url: feed.url,
+            parentTag: feed.category || 'tech',
+            name: feed.name
+          }));
+      }
+
+      // Fallback: if feeds.json has different structure
+      if (Array.isArray(feedsData)) {
+        return feedsData.map(url => ({ url, parentTag: 'tech' }));
+      }
+
+      console.warn("Invalid feeds.json structure");
+      return [];
+    } catch (error) {
+      console.error("Error reading feeds.json:", error.message);
+      return [];
+    }
+  }
 }
 
 module.exports = new Config();

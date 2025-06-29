@@ -138,7 +138,7 @@ class RSSFeeder {
       }
 
       // Check if we can access Gemini API
-      const testPrompt = 'Hello, please respond with "OK"';
+      const testPrompt = await Utils.loadPrompt('health-check.md');
       await llmProcessor.makeGeminiRequest(testPrompt);
 
       Utils.log("info", "✅ Health check passed");

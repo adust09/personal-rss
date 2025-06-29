@@ -214,6 +214,50 @@ class Utils {
     
     return result;
   }
+
+  /**
+   * Load prompt file and extract content
+   * @param {string} promptName 
+   * @returns {Promise<string>}
+   */
+  static async loadPrompt(promptName) {
+    const config = require('./config');
+    const promptPath = path.join(config.getPromptsDirectory(), promptName);
+    
+    try {
+      const content = await fs.readFile(promptPath, 'utf8');
+      
+      // Extract content after YAML frontmatter
+      const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
+      const match = content.match(frontmatterRegex);
+      
+      if (match) {
+        return match[2].trim(); // Return content after frontmatter
+      } else {
+        return content.trim(); // Return full content if no frontmatter
+      }
+    } catch (error) {
+      throw new Error(`Failed to load prompt ${promptName}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Replace prompt variables with values
+   * @param {string} prompt 
+   * @param {Object} variables 
+   * @returns {string}
+   */
+  static replacePromptVariables(prompt, variables) {
+    let result = prompt;
+    
+    // Replace simple variables ({{variable}})
+    Object.keys(variables).forEach(key => {
+      const value = variables[key] || '';
+      result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    });
+    
+    return result;
+  }
 }
 
 module.exports = Utils;

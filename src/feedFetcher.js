@@ -120,23 +120,23 @@ class FeedFetcher {
   }
 
   /**
-   * Filter articles by date (today's articles only)
+   * Filter articles by date (past 3 days articles)
    * @param {Array<Object>} articles 
-   * @returns {Array<Object>} Today's articles
+   * @returns {Array<Object>} Past 3 days articles
    */
   filterTodayArticles(articles) {
     const today = new Date();
-    const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
+    const threeDaysAgoStart = new Date(threeDaysAgo.getFullYear(), threeDaysAgo.getMonth(), threeDaysAgo.getDate());
 
-    const todayArticles = articles.filter(article => {
+    const recentArticles = articles.filter(article => {
       const pubDate = new Date(article.pubDate);
-      return pubDate >= todayStart && pubDate < todayEnd;
+      return pubDate >= threeDaysAgoStart;
     });
 
-    Utils.log('info', `Filtered ${todayArticles.length} articles from today out of ${articles.length} total`);
+    Utils.log('info', `Filtered ${recentArticles.length} articles from past 3 days out of ${articles.length} total`);
     
-    return todayArticles;
+    return recentArticles;
   }
 
   /**
@@ -145,18 +145,24 @@ class FeedFetcher {
    * @returns {Promise<Array<Object>>} All articles
    */
   async getAllArticles(todayOnly = true) {
-    const feedUrls = config.getRssFeeds();
+    const feedsWithTags = config.getRssFeedsWithTags();
+    const feedUrls = feedsWithTags.map(f => f.url);
     const feeds = await this.fetchMultipleFeeds(feedUrls);
     
     let allArticles = [];
     
-    for (const feed of feeds) {
+    for (let i = 0; i < feeds.length; i++) {
+      const feed = feeds[i];
+      const feedConfig = feedsWithTags[i];
+      
       if (feed && feed.items) {
-        // Add feed source to each article
+        // Add feed source and parentTag to each article
         const articlesWithSource = feed.items.map(item => ({
           ...item,
           feedTitle: feed.title,
-          feedLink: feed.link
+          feedLink: feed.link,
+          feedParentTag: feedConfig.parentTag,
+          feedName: feedConfig.name
         }));
         
         allArticles = allArticles.concat(articlesWithSource);
