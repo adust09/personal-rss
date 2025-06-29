@@ -164,6 +164,56 @@ class Utils {
   static stripHtml(html) {
     return html.replace(/<[^>]*>/g, '').trim();
   }
+
+  /**
+   * Load template file
+   * @param {string} templateName 
+   * @returns {Promise<string>}
+   */
+  static async loadTemplate(templateName) {
+    const config = require('./config');
+    const templatePath = path.join(config.getTemplatesDirectory(), templateName);
+    
+    try {
+      const template = await fs.readFile(templatePath, 'utf8');
+      return template;
+    } catch (error) {
+      throw new Error(`Failed to load template ${templateName}: ${error.message}`);
+    }
+  }
+
+  /**
+   * Replace template variables with values
+   * @param {string} template 
+   * @param {Object} variables 
+   * @returns {string}
+   */
+  static replaceTemplateVariables(template, variables) {
+    let result = template;
+    
+    // Handle conditional blocks ({{#variable}} ... {{/variable}})
+    Object.keys(variables).forEach(key => {
+      const value = variables[key];
+      const conditionalRegex = new RegExp(`{{#${key}}}([\\s\\S]*?){{/${key}}}`, 'g');
+      
+      if (value && value.toString().trim()) {
+        // Replace conditional block with content, then replace variable
+        result = result.replace(conditionalRegex, '$1');
+        result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
+      } else {
+        // Remove conditional block if variable is empty
+        result = result.replace(conditionalRegex, '');
+      }
+    });
+    
+    // Replace simple variables ({{variable}})
+    Object.keys(variables).forEach(key => {
+      const value = variables[key] || '';
+      result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    });
+    
+    return result;
+  }
 }
 
 module.exports = Utils;

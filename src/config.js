@@ -109,6 +109,10 @@ class Config {
   getIgnoreSSLErrors() {
     return process.env.IGNORE_SSL_ERRORS === "true";
   }
+
+  getTemplatesDirectory() {
+    return process.env.TEMPLATES_DIRECTORY || "./templates";
+  }
 }
 
 module.exports = new Config();
