@@ -1,7 +1,7 @@
 # RSS Feeder - 技術仕様書
 
 ## 概要
-GitHub Actionsで毎日RSSフィードを取得し、Gemini APIでタグ付けと要約を行い、リポジトリにマークダウンファイルを作成するシステム
+ローカルサーバーで動作し、RSSフィードを取得してGemini APIでタグ付けと要約を行い、Obsidian Local REST API経由でObsidian Vaultに直接マークダウンファイルを作成するシステム
 
 ## システム構成
 
@@ -13,29 +13,35 @@ personal-rss/
 │   ├── config.js        # 設定管理
 │   ├── feedFetcher.js   # RSSフィード取得
 │   ├── llmProcessor.js  # Gemini API処理
-│   ├── obsidianAPI.js   # ファイル出力システム
+│   ├── obsidianAPI.js   # Obsidian Local REST API連携
 │   └── utils.js         # ユーティリティ関数
-├── .github/workflows/
-│   └── rss-feeder.yml   # GitHub Actions ワークフロー
 ├── config/
-│   └── feeds.json       # フィード設定（オプション）
-├── output/              # 出力ディレクトリ
+│   └── feeds.json       # フィード設定
+├── doc/
+│   ├── doc.md           # 技術仕様書（本ファイル）
+│   ├── scheduler-setup.md # スケジューラー設定ガイド
+│   └── test.md          # テスト仕様
+├── .env.example         # 環境変数テンプレート
+├── .gitignore          # Git除外設定
 └── package.json         # Node.js依存関係
 ```
 
 ### 技術スタック
-- **実行環境**: GitHub Actions (Ubuntu Latest)
+- **実行環境**: ローカルサーバー (Windows/macOS/Linux)
 - **ランタイム**: Node.js 18+
+- **スケジューラー**: cron/systemd/Task Scheduler/PM2
 - **依存関係**:
   - rss-parser: RSS/XMLパース
-  - axios: HTTP リクエスト
+  - axios: HTTP リクエスト (RSS + Obsidian API)
   - date-fns: 日付操作
   - js-yaml: YAML frontmatter生成
+  - dotenv: 環境変数管理
 
 ## 処理フロー詳細
 
 ### 1. RSSフィード取得 (feedFetcher.js)
-- 環境変数 `RSS_FEEDS` からフィードURLリストを読み込み
+- `.env` ファイルまたは環境変数 `RSS_FEEDS` からフィードURLリストを読み込み
+- フォールバック: `config/feeds.json` ファイルからの読み込み
 - `axios` でHTTPリクエスト実行
 - `rss-parser` でXML解析
 - エラーハンドリング: 失敗したフィードはスキップ
@@ -59,11 +65,13 @@ personal-rss/
 - 主要トピック、トレンド、注目記事を含む
 - 英語記事も日本語で要約
 
-### 3. ファイル出力 (obsidianAPI.js)
-- タグ階層に従ったディレクトリ構造作成
+### 3. Obsidian連携 (obsidianAPI.js)
+- Obsidian Local REST API (https://127.0.0.1:27124/) に接続
+- タグ階層に従ったVault内パス構成
 - YAML frontmatter付きマークダウン生成
 - 日付別インデックスファイル作成
-- 0件タグのファイル作成をスキップ
+- リアルタイムでObsidian Vaultにファイル作成
+- 接続テストとエラーハンドリング
 
 ## 設定管理
 
@@ -88,20 +96,38 @@ personal-rss/
 }
 ```
 
-### 環境変数
+### 環境変数（.env ファイル推奨）
+
+#### .env ファイル設定
+```bash
+# .env.example をコピーして .env ファイルを作成
+cp .env.example .env
+```
+
+#### 環境変数一覧
 ```bash
 # 必須
 GEMINI_API_KEY          # Gemini API キー
+OBSIDIAN_API_KEY        # Obsidian Local REST API キー
 
 # オプション
 RSS_FEEDS              # RSSフィードURLのJSON配列 (feeds.jsonより優先)
-OUTPUT_DIRECTORY       # 出力ディレクトリ (default: ./output)
+OBSIDIAN_API_URL       # Obsidian API URL (default: https://127.0.0.1:27124/)
 DEBUG                  # デバッグモード (default: false)
 TIMEZONE               # タイムゾーン (default: Asia/Tokyo)
 MAX_RETRIES            # 最大リトライ回数 (default: 3)
 GEMINI_MODEL           # Geminiモデル名 (default: gemini-2.5-flash)
 GEMINI_REQUEST_DELAY   # API呼び出し間隔ms (default: 1000)
 RETRY_DELAY            # リトライ間隔ms (default: 1000)
+```
+
+#### .env ファイル例
+```bash
+# コピーして .env として保存し、実際の値を設定
+GEMINI_API_KEY=your-actual-gemini-api-key
+OBSIDIAN_API_KEY=your-actual-obsidian-api-key
+DEBUG=false
+OBSIDIAN_API_URL=https://127.0.0.1:27124/
 ```
 
 ### 利用可能なGeminiモデル
@@ -116,21 +142,34 @@ gemini-1.5-flash       # 旧世代高速モデル
 gemini-1.5-pro         # 旧世代高精度モデル
 ```
 
-### GitHub Secrets設定
-- `GEMINI_API_KEY`: Google AI Studio から取得
+### Obsidian Local REST API設定
+1. **プラグインインストール**:
+   - Obsidian > Settings > Community plugins > Browse
+   - "Local REST API" を検索・インストール・有効化
 
+2. **API Key生成**:
+   - プラグイン設定でAPI Keyを生成
+   - 環境変数 `OBSIDIAN_API_KEY` に設定
+
+3. **接続確認**:
+   ```bash
+   curl -H "Authorization: Bearer YOUR_API_KEY" https://127.0.0.1:27124//vault/
+   ```
+****
 ## 出力形式
 
-### ディレクトリ構造
+### Obsidian Vault構造
 ```
-output/RSS/YYYY-MM-DD/
-├── index.md              # 日別概要
-├── tech/
-│   ├── ai.md            # AI関連記事
-│   ├── web.md           # Web開発関連
-│   └── security.md      # セキュリティ関連
-├── business.md          # ビジネス関連
-└── science.md           # 科学関連
+Obsidian Vault/
+└── RSS/
+    └── YYYY-MM-DD/
+        ├── index.md              # 日別概要
+        ├── tech/
+        │   ├── ai.md            # AI関連記事
+        │   ├── web.md           # Web開発関連
+        │   └── security.md      # セキュリティ関連
+        ├── business.md          # ビジネス関連
+        └── science.md           # 科学関連
 ```
 
 ### マークダウンファイル構造
@@ -160,20 +199,20 @@ Gemini APIで生成された日本語要約
 **タグ**: タグリスト
 ```
 
-## GitHub Actions ワークフロー
+## ローカルスケジューリング
 
-### スケジュール
-- 毎日 8:00 AM JST (23:00 UTC) 自動実行
-- 手動実行対応 (workflow_dispatch)
-- テストモード実行対応
+### 自動実行方式
+- **Linux/macOS**: cron または systemd timer
+- **Windows**: Task Scheduler
+- **クロスプラットフォーム**: PM2 または Docker
 
 ### 実行フロー
-1. Node.js 18 環境セットアップ
-2. 依存関係インストール
-3. RSS Feeder実行
-4. 出力ファイル確認
-5. Git コミット・プッシュ
-6. エラー時はアーティファクト保存
+1. スケジューラーがNode.jsプロセス起動
+2. dotenvで`.env`ファイルから環境変数読み込み
+3. Obsidian API接続確認
+4. RSS Feeder実行
+5. Obsidian Vaultに直接ファイル作成
+6. 完了ログ出力
 
 ## エラーハンドリング
 
@@ -181,7 +220,7 @@ Gemini APIで生成された日本語要約
 1. **フィード取得失敗**: 個別フィードをスキップ、継続実行
 2. **Gemini API失敗**: 指数バックオフでリトライ、最終的にスキップ
 3. **ファイル作成失敗**: リトライ後、エラーログ
-4. **システム全体失敗**: GitHub Actions失敗、通知
+4. **システム全体失敗**: ローカル実行失敗、ログ出力
 
 ### ログ管理
 - 構造化ログ（タイムスタンプ付き）
@@ -191,9 +230,10 @@ Gemini APIで生成された日本語要約
 ## セキュリティ考慮事項
 
 ### API キー管理
-- GitHub Secrets で暗号化保存
+- `.env` ファイルでローカル管理（`.gitignore` で除外済み）
 - 環境変数経由でのアクセス
 - ソースコードに機密情報含まず
+- `.env.example` でテンプレート提供
 
 ### ネットワークセキュリティ
 - HTTPS通信のみ
@@ -202,14 +242,15 @@ Gemini APIで生成された日本語要約
 
 ## 制限事項
 
-### GitHub Actions制限
-- 実行時間: 6時間（通常5-10分で完了）
-- ストレージ: リポジトリサイズ制限
-- 同時実行: 組織レベル制限
+### ローカル実行制限
+- Obsidianが起動している必要がある
+- Local REST APIプラグインが有効である必要がある
+- ローカルマシンの稼働時間に依存
 
 ### API制限
 - Gemini API: レート制限・クォータ
 - RSS フィード: サーバー側制限
+- Obsidian API: ローカルネットワーク接続のみ
 
 ## パフォーマンス最適化
 
