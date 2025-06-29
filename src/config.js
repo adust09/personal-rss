@@ -11,7 +11,7 @@ class Config {
   }
 
   validateRequiredEnvVars() {
-    const required = ['GEMINI_API_KEY'];
+    const required = ['GEMINI_API_KEY', 'OBSIDIAN_API_KEY'];
     const missing = required.filter(key => !process.env[key]);
     
     if (missing.length > 0) {
@@ -24,11 +24,11 @@ class Config {
   }
 
   getObsidianApiKey() {
-    return process.env.OBSIDIAN_API_KEY || null;
+    return process.env.OBSIDIAN_API_KEY;
   }
 
   getObsidianApiUrl() {
-    return process.env.OBSIDIAN_API_URL || 'https://127.0.0.1:27123';
+    return process.env.OBSIDIAN_API_URL || 'http://127.0.0.1:27123';
   }
 
   getRssFeeds() {

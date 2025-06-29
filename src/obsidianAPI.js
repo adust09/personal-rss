@@ -1,33 +1,62 @@
 /**
- * File Output System
- * Creates markdown files with YAML frontmatter for processed articles
+ * Obsidian Local REST API Client
+ * Creates markdown files in Obsidian Vault via Local REST API
  */
 
+const axios = require('axios');
 const path = require('path');
 const Utils = require('./utils');
 const config = require('./config');
 
-class FileOutput {
+class ObsidianAPI {
   constructor() {
-    this.outputDir = config.getOutputDirectory();
+    this.apiUrl = config.getObsidianApiUrl();
+    this.apiKey = config.getObsidianApiKey();
+    this.baseVaultPath = 'RSS'; // Base path in Obsidian vault
+    
+    // Validate configuration
+    if (!this.apiKey) {
+      throw new Error('OBSIDIAN_API_KEY environment variable is required for Obsidian integration');
+    }
   }
 
   /**
-   * Create directory structure for the given date
+   * Get vault path for the given date
    * @param {Date} date 
-   * @returns {string} Base directory path
+   * @returns {string} Vault directory path
    */
-  async createDateDirectory(date = new Date()) {
+  getDateVaultPath(date = new Date()) {
     const dateString = Utils.formatDate(date);
-    const baseDir = path.join(this.outputDir, 'RSS', dateString);
-    
-    await Utils.ensureDirectory(baseDir);
-    
-    return baseDir;
+    return `${this.baseVaultPath}/${dateString}`;
   }
 
   /**
-   * Create markdown file for a tag category
+   * Test connection to Obsidian Local REST API
+   * @returns {Promise<boolean>} Connection status
+   */
+  async testConnection() {
+    try {
+      const response = await axios.get(`${this.apiUrl}/vault/`, {
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`
+        },
+        timeout: 5000
+      });
+      
+      Utils.log('info', 'Successfully connected to Obsidian Local REST API');
+      return response.status === 200;
+      
+    } catch (error) {
+      Utils.log('error', `Failed to connect to Obsidian API: ${error.message}`);
+      if (error.code === 'ECONNREFUSED') {
+        Utils.log('error', 'Make sure Obsidian is running with Local REST API plugin enabled');
+      }
+      return false;
+    }
+  }
+
+  /**
+   * Create markdown file for a tag category via Obsidian API
    * @param {string} tag 
    * @param {Object} tagData 
    * @param {Date} date 
@@ -40,20 +69,18 @@ class FileOutput {
       return;
     }
 
-    const baseDir = await this.createDateDirectory(date);
+    const basePath = this.getDateVaultPath(date);
     
     // Handle hierarchical tags (e.g., tech/ai -> tech directory)
     const tagParts = tag.split('/');
     const fileName = `${tagParts[tagParts.length - 1]}.md`;
     
-    let filePath;
+    let vaultPath;
     if (tagParts.length > 1) {
-      // Create subdirectory for hierarchical tags
-      const subDir = path.join(baseDir, tagParts[0]);
-      await Utils.ensureDirectory(subDir);
-      filePath = path.join(subDir, fileName);
+      // Create path for hierarchical tags
+      vaultPath = `${basePath}/${tagParts[0]}/${fileName}`;
     } else {
-      filePath = path.join(baseDir, fileName);
+      vaultPath = `${basePath}/${fileName}`;
     }
 
     // Generate YAML frontmatter
@@ -67,12 +94,47 @@ class FileOutput {
 
     // Generate markdown content
     const content = this.generateMarkdownContent(tag, tagData, date);
-    
     const fullContent = frontmatter + content;
     
-    await Utils.writeFile(filePath, fullContent);
+    // Create file via Obsidian API
+    await this.createObsidianFile(vaultPath, fullContent);
     
-    Utils.log('info', `Created file: ${filePath} (${count} articles)`);
+    Utils.log('info', `Created Obsidian file: ${vaultPath} (${count} articles)`);
+  }
+
+  /**
+   * Create file in Obsidian vault via REST API
+   * @param {string} vaultPath Path within vault
+   * @param {string} content File content
+   */
+  async createObsidianFile(vaultPath, content) {
+    try {
+      const response = await Utils.retry(
+        async () => {
+          return await axios.put(`${this.apiUrl}/vault/${vaultPath}`, content, {
+            headers: {
+              'Authorization': `Bearer ${this.apiKey}`,
+              'Content-Type': 'text/markdown'
+            },
+            timeout: 10000
+          });
+        },
+        config.getMaxRetries(),
+        config.getRetryDelay(),
+        `Creating Obsidian file: ${vaultPath}`
+      );
+
+      if (response.status === 200 || response.status === 201) {
+        Utils.log('info', `Successfully created file in Obsidian: ${vaultPath}`);
+      }
+      
+    } catch (error) {
+      Utils.log('error', `Failed to create Obsidian file ${vaultPath}:`, error.message);
+      if (error.response) {
+        Utils.log('error', `API Response:`, error.response.data);
+      }
+      throw error;
+    }
   }
 
   /**
@@ -185,8 +247,8 @@ class FileOutput {
    * @param {Date} date 
    */
   async createIndexFile(processedData, date = new Date()) {
-    const baseDir = await this.createDateDirectory(date);
-    const indexPath = path.join(baseDir, 'index.md');
+    const basePath = this.getDateVaultPath(date);
+    const indexPath = `${basePath}/index.md`;
     
     const dateString = Utils.formatDateJapanese(date);
     const totalArticles = Object.values(processedData).reduce((sum, data) => sum + data.count, 0);
@@ -225,13 +287,13 @@ class FileOutput {
     
     const fullContent = frontmatter + content;
     
-    await Utils.writeFile(indexPath, fullContent);
+    await this.createObsidianFile(indexPath, fullContent);
     
     Utils.log('info', `Created index file: ${indexPath}`);
   }
 
   /**
-   * Generate all output files
+   * Generate all output files in Obsidian vault
    * @param {Object} processedData 
    * @param {Date} date 
    */
@@ -241,11 +303,18 @@ class FileOutput {
       return;
     }
 
+    // Test connection first
+    const connected = await this.testConnection();
+    if (!connected) {
+      throw new Error('Cannot connect to Obsidian Local REST API. Please ensure Obsidian is running with the plugin enabled.');
+    }
+
     await this.createAllFiles(processedData, date);
     await this.createIndexFile(processedData, date);
     
-    Utils.log('info', `Output generation complete. Files created in: ${this.outputDir}`);
+    const vaultPath = this.getDateVaultPath(date);
+    Utils.log('info', `Output generation complete. Files created in Obsidian vault: ${vaultPath}`);
   }
 }
 
-module.exports = new FileOutput();
+module.exports = new ObsidianAPI();

@@ -76,9 +76,13 @@ class RSSFeeder {
   validateConfiguration() {
     Utils.log('info', '🔧 Validating configuration...');
     
-    // Check Gemini API key
+    // Check required API keys
     if (!config.getGeminiApiKey()) {
       throw new Error('GEMINI_API_KEY environment variable is required');
+    }
+    
+    if (!config.getObsidianApiKey()) {
+      throw new Error('OBSIDIAN_API_KEY environment variable is required');
     }
     
     // Check RSS feeds
@@ -95,7 +99,7 @@ class RSSFeeder {
     // Log configuration (without sensitive data)
     if (config.isDebugMode()) {
       Utils.log('info', 'Configuration:');
-      Utils.log('info', `- Output directory: ${config.getOutputDirectory()}`);
+      Utils.log('info', `- Obsidian API URL: ${config.getObsidianApiUrl()}`);
       Utils.log('info', `- Timezone: ${config.getTimezone()}`);
       Utils.log('info', `- Max retries: ${config.getMaxRetries()}`);
       Utils.log('info', `- Gemini request delay: ${config.getGeminiRequestDelay()}ms`);
@@ -109,6 +113,12 @@ class RSSFeeder {
   async healthCheck() {
     try {
       Utils.log('info', '🏥 Running health check...');
+      
+      // Check Obsidian API connection
+      const obsidianConnected = await fileOutput.testConnection();
+      if (!obsidianConnected) {
+        throw new Error('Obsidian API connection failed');
+      }
       
       // Check if we can access Gemini API
       const testPrompt = 'Hello, please respond with "OK"';
@@ -192,21 +202,23 @@ Commands:
 Configuration:
   config/feeds.json      Required: RSS feeds configuration file
   GEMINI_API_KEY         Required: Your Gemini API key (environment variable)
+  OBSIDIAN_API_KEY       Required: Obsidian Local REST API key (environment variable)
 
 Environment Variables:
   RSS_FEEDS              Optional: JSON array of RSS feed URLs (overrides feeds.json)
-  OUTPUT_DIRECTORY       Optional: Output directory (default: ./output)
+  OBSIDIAN_API_URL       Optional: Obsidian API URL (default: http://127.0.0.1:27123)
   DEBUG                  Optional: Enable debug mode (true/false)
   TIMEZONE               Optional: Timezone (default: Asia/Tokyo)
   MAX_RETRIES            Optional: Max retry attempts (default: 3)
   GEMINI_REQUEST_DELAY   Optional: Delay between API calls in ms (default: 1000)
 
 Example:
-  # Edit config/feeds.json to enable feeds, then:
-  export GEMINI_API_KEY="your-api-key"
+  # Setup Obsidian Local REST API plugin and get API key, then:
+  export GEMINI_API_KEY="your-gemini-api-key"
+  export OBSIDIAN_API_KEY="your-obsidian-api-key"
   node src/main.js
   
-  # Or use environment variable:
+  # Or use RSS_FEEDS environment variable:
   export RSS_FEEDS='["https://example.com/feed.xml"]'
   node src/main.js
       `);
