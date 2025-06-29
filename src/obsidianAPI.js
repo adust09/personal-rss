@@ -4,6 +4,7 @@
  */
 
 const axios = require('axios');
+const https = require('https');
 const path = require('path');
 const Utils = require('./utils');
 const config = require('./config');
@@ -13,6 +14,11 @@ class ObsidianAPI {
     this.apiUrl = config.getObsidianApiUrl();
     this.apiKey = config.getObsidianApiKey();
     this.baseVaultPath = 'RSS'; // Base path in Obsidian vault
+    
+    // Configure HTTPS agent to handle self-signed certificates
+    this.httpsAgent = new https.Agent({
+      rejectUnauthorized: !config.getIgnoreSSLErrors()
+    });
     
     // Validate configuration
     if (!this.apiKey) {
@@ -40,6 +46,7 @@ class ObsidianAPI {
         headers: {
           'Authorization': `Bearer ${this.apiKey}`
         },
+        httpsAgent: this.httpsAgent,
         timeout: 5000
       });
       
@@ -116,6 +123,7 @@ class ObsidianAPI {
               'Authorization': `Bearer ${this.apiKey}`,
               'Content-Type': 'text/markdown'
             },
+            httpsAgent: this.httpsAgent,
             timeout: 10000
           });
         },

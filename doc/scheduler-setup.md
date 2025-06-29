@@ -205,7 +205,7 @@ DEBUG=true node src/main.js test
 #### 1. Obsidian接続エラー
 ```bash
 # Obsidianが起動しているか確認
-curl http://127.0.0.1:27123/vault/
+curl https://127.0.0.1:27124//vault/
 
 # プラグインの設定確認
 # Obsidian > Settings > Community plugins > Local REST API

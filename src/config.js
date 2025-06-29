@@ -2,11 +2,11 @@
  * Configuration management using environment variables and JSON files
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
 // Load environment variables from .env file
-require('dotenv').config();
+require("dotenv").config();
 
 class Config {
   constructor() {
@@ -14,11 +14,13 @@ class Config {
   }
 
   validateRequiredEnvVars() {
-    const required = ['GEMINI_API_KEY', 'OBSIDIAN_API_KEY'];
-    const missing = required.filter(key => !process.env[key]);
-    
+    const required = ["GEMINI_API_KEY", "OBSIDIAN_API_KEY"];
+    const missing = required.filter((key) => !process.env[key]);
+
     if (missing.length > 0) {
-      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
+      throw new Error(
+        `Missing required environment variables: ${missing.join(", ")}`
+      );
     }
   }
 
@@ -31,7 +33,7 @@ class Config {
   }
 
   getObsidianApiUrl() {
-    return process.env.OBSIDIAN_API_URL || 'http://127.0.0.1:27123';
+    return process.env.OBSIDIAN_API_URL || "https://127.0.0.1:27124/";
   }
 
   getRssFeeds() {
@@ -41,68 +43,71 @@ class Config {
       try {
         return JSON.parse(feedsString);
       } catch (error) {
-        console.error('Error parsing RSS_FEEDS environment variable:', error);
+        console.error("Error parsing RSS_FEEDS environment variable:", error);
       }
     }
-    
+
     // Read from feeds.json file
     try {
-      const feedsPath = path.join(process.cwd(), 'config', 'feeds.json');
-      
+      const feedsPath = path.join(process.cwd(), "config", "feeds.json");
+
       if (!fs.existsSync(feedsPath)) {
-        console.warn('feeds.json file not found at:', feedsPath);
+        console.warn("feeds.json file not found at:", feedsPath);
         return [];
       }
-      
-      const feedsData = JSON.parse(fs.readFileSync(feedsPath, 'utf8'));
-      
+
+      const feedsData = JSON.parse(fs.readFileSync(feedsPath, "utf8"));
+
       // Extract enabled feeds
       if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
         return feedsData.feeds
-          .filter(feed => feed.enabled === true)
-          .map(feed => feed.url);
+          .filter((feed) => feed.enabled === true)
+          .map((feed) => feed.url);
       }
-      
+
       // Fallback: if feeds.json has different structure
       if (Array.isArray(feedsData)) {
         return feedsData;
       }
-      
-      console.warn('Invalid feeds.json structure');
+
+      console.warn("Invalid feeds.json structure");
       return [];
-      
     } catch (error) {
-      console.error('Error reading feeds.json:', error.message);
+      console.error("Error reading feeds.json:", error.message);
       return [];
     }
   }
 
   getOutputDirectory() {
-    return process.env.OUTPUT_DIRECTORY || './output';
+    return process.env.OUTPUT_DIRECTORY || "./output";
   }
 
   getTimezone() {
-    return process.env.TIMEZONE || 'Asia/Tokyo';
+    return process.env.TIMEZONE || "Asia/Tokyo";
   }
 
   getMaxRetries() {
-    return parseInt(process.env.MAX_RETRIES || '3', 10);
+    return parseInt(process.env.MAX_RETRIES || "3", 10);
   }
 
   getRetryDelay() {
-    return parseInt(process.env.RETRY_DELAY || '1000', 10);
+    return parseInt(process.env.RETRY_DELAY || "1000", 10);
   }
 
   getGeminiRequestDelay() {
-    return parseInt(process.env.GEMINI_REQUEST_DELAY || '1000', 10);
+    return parseInt(process.env.GEMINI_REQUEST_DELAY || "1000", 10);
   }
 
   getGeminiModel() {
-    return process.env.GEMINI_MODEL || 'gemini-2.5-flash';
+    return process.env.GEMINI_MODEL || "gemini-2.5-flash";
   }
 
   isDebugMode() {
-    return process.env.DEBUG === 'true';
+    return process.env.DEBUG === "true";
+  }
+
+  getIgnoreSSLErrors() {
+    return process.env.IGNORE_SSL_ERRORS === "true";
   }
 }
 

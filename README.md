@@ -89,7 +89,7 @@ cp .env.example .env
 
 ### オプション環境変数
 - `RSS_FEEDS`: RSSフィードURLのJSON配列 (feeds.jsonより優先)
-- `OBSIDIAN_API_URL`: Obsidian API URL (default: `http://127.0.0.1:27123`)
+- `OBSIDIAN_API_URL`: Obsidian API URL (default: `https://127.0.0.1:27124/`)
 - `DEBUG`: デバッグモード (default: `false`)
 - `GEMINI_MODEL`: Geminiモデル名 (default: `gemini-2.5-flash`)
 - `GEMINI_REQUEST_DELAY`: API呼び出し間隔ms (default: `1000`)
@@ -114,7 +114,7 @@ export DEBUG=true
 node src/main.js test
 
 # Obsidian接続テスト
-curl -H "Authorization: Bearer YOUR_API_KEY" http://127.0.0.1:27123/vault/
+curl -H "Authorization: Bearer YOUR_API_KEY" https://127.0.0.1:27124//vault/
 ```
 
 ## 🔄 GitHub Actionsからの移行

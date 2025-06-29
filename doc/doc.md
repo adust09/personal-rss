@@ -66,7 +66,7 @@ personal-rss/
 - 英語記事も日本語で要約
 
 ### 3. Obsidian連携 (obsidianAPI.js)
-- Obsidian Local REST API (http://127.0.0.1:27123) に接続
+- Obsidian Local REST API (https://127.0.0.1:27124/) に接続
 - タグ階層に従ったVault内パス構成
 - YAML frontmatter付きマークダウン生成
 - 日付別インデックスファイル作成
@@ -112,7 +112,7 @@ OBSIDIAN_API_KEY        # Obsidian Local REST API キー
 
 # オプション
 RSS_FEEDS              # RSSフィードURLのJSON配列 (feeds.jsonより優先)
-OBSIDIAN_API_URL       # Obsidian API URL (default: http://127.0.0.1:27123)
+OBSIDIAN_API_URL       # Obsidian API URL (default: https://127.0.0.1:27124/)
 DEBUG                  # デバッグモード (default: false)
 TIMEZONE               # タイムゾーン (default: Asia/Tokyo)
 MAX_RETRIES            # 最大リトライ回数 (default: 3)
@@ -127,7 +127,7 @@ RETRY_DELAY            # リトライ間隔ms (default: 1000)
 GEMINI_API_KEY=your-actual-gemini-api-key
 OBSIDIAN_API_KEY=your-actual-obsidian-api-key
 DEBUG=false
-OBSIDIAN_API_URL=http://127.0.0.1:27123
+OBSIDIAN_API_URL=https://127.0.0.1:27124/
 ```
 
 ### 利用可能なGeminiモデル
@@ -153,9 +153,9 @@ gemini-1.5-pro         # 旧世代高精度モデル
 
 3. **接続確認**:
    ```bash
-   curl -H "Authorization: Bearer YOUR_API_KEY" http://127.0.0.1:27123/vault/
+   curl -H "Authorization: Bearer YOUR_API_KEY" https://127.0.0.1:27124//vault/
    ```
-
+****
 ## 出力形式
 
 ### Obsidian Vault構造
