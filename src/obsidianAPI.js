@@ -71,8 +71,9 @@ class ObsidianAPI {
    * @param {string} tag
    * @param {Object} tagData
    * @param {Date} date
+   * @param {boolean} includeHour Whether to include hour in filename
    */
-  async createTagFile(tag, tagData, date = new Date()) {
+  async createTagFile(tag, tagData, date = new Date(), includeHour = false) {
     const { articles, summary, count } = tagData;
 
     if (!articles || articles.length === 0) {
@@ -84,7 +85,12 @@ class ObsidianAPI {
 
     // Handle hierarchical tags (e.g., tech/ai -> tech directory)
     const tagParts = tag.split("/");
-    const fileName = `${tagParts[tagParts.length - 1]}.md`;
+    const baseFileName = tagParts[tagParts.length - 1];
+    
+    // Create filename with hour if requested
+    const fileName = includeHour 
+      ? `${baseFileName}-${Utils.formatDateWithHour(date)}.md`
+      : `${baseFileName}.md`;
 
     let vaultPath;
     if (tagParts.length > 1) {
@@ -95,13 +101,20 @@ class ObsidianAPI {
     }
 
     // Generate YAML frontmatter
-    const frontmatter = Utils.generateYamlFrontmatter({
+    const frontmatterData = {
       date: Utils.formatDate(date),
       tag: tag,
       count: count,
       tags: [tag],
       generated: new Date().toISOString(),
-    });
+    };
+
+    if (includeHour) {
+      frontmatterData.hour = Utils.getCurrentHour(date);
+      frontmatterData.execution_time = Utils.formatDateWithHour(date);
+    }
+
+    const frontmatter = Utils.generateYamlFrontmatter(frontmatterData);
 
     // Generate markdown content
     const content = await this.generateMarkdownContent(tag, tagData, date);
@@ -302,8 +315,9 @@ class ObsidianAPI {
    * Create all markdown files for processed data
    * @param {Object} processedData
    * @param {Date} date
+   * @param {boolean} includeHour Whether to include hour in filename
    */
-  async createAllFiles(processedData, date = new Date()) {
+  async createAllFiles(processedData, date = new Date(), includeHour = false) {
     if (!processedData || Object.keys(processedData).length === 0) {
       Utils.log("warn", "No processed data to create files");
       return;
@@ -317,7 +331,7 @@ class ObsidianAPI {
     );
 
     const promises = Object.entries(processedData).map(([tag, tagData]) =>
-      this.createTagFile(tag, tagData, date)
+      this.createTagFile(tag, tagData, date, includeHour)
     );
 
     await Promise.allSettled(promises);
@@ -395,8 +409,9 @@ class ObsidianAPI {
    * Generate all output files in Obsidian vault
    * @param {Object} processedData
    * @param {Date} date
+   * @param {boolean} includeHour Whether to include hour in filename
    */
-  async generateOutput(processedData, date = new Date()) {
+  async generateOutput(processedData, date = new Date(), includeHour = false) {
     if (!processedData || Object.keys(processedData).length === 0) {
       Utils.log("warn", "No data to generate output");
       return;
@@ -410,7 +425,7 @@ class ObsidianAPI {
       );
     }
 
-    await this.createAllFiles(processedData, date);
+    await this.createAllFiles(processedData, date, includeHour);
     await this.createIndexFile(processedData, date);
 
     const vaultPath = this.getDateVaultPath(date);

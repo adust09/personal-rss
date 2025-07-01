@@ -205,6 +205,14 @@ class Config {
       return [];
     }
   }
+
+  /**
+   * Check if hourly file generation is enabled
+   * @returns {boolean} Whether to include hour in filename
+   */
+  getEnableHourlyFiles() {
+    return process.env.ENABLE_HOURLY_FILES === "true";
+  }
 }
 
 module.exports = new Config();

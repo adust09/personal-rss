@@ -52,7 +52,8 @@ class RSSFeeder {
 
       // Step 4: Generate output files
       Utils.log("info", "📁 Generating output files...");
-      await fileOutput.generateOutput(processedData);
+      const includeHour = config.getEnableHourlyFiles();
+      await fileOutput.generateOutput(processedData, this.startTime, includeHour);
 
       // Step 5: Generate keyword output files (if any keyword data exists)
       if (keywordData && Object.keys(keywordData).length > 0) {
@@ -198,7 +199,8 @@ class RSSFeeder {
       const keywordData = await llmProcessor.processKeywordArticles(limitedArticles);
 
       if (processedData && Object.keys(processedData).length > 0) {
-        await fileOutput.generateOutput(processedData);
+        const includeHour = config.getEnableHourlyFiles();
+        await fileOutput.generateOutput(processedData, new Date(), includeHour);
         
         // Test keyword output
         if (keywordData && Object.keys(keywordData).length > 0) {

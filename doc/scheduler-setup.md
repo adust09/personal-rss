@@ -17,6 +17,9 @@ crontab -e
 
 # 毎日8:00にRSS Feederを実行
 0 8 * * * cd /path/to/personal-rss && /usr/local/bin/node src/main.js >> /tmp/rss-feeder.log 2>&1
+
+# 3時間ごとの実行設定例 (0:00, 3:00, 6:00, 9:00, 12:00, 15:00, 18:00, 21:00)
+0 */3 * * * cd /path/to/personal-rss && ENABLE_HOURLY_FILES=true /usr/local/bin/node src/main.js >> /tmp/rss-feeder.log 2>&1
 ```
 
 ### 環境変数付きcron設定例
@@ -65,6 +68,9 @@ Requires=rss-feeder.service
 OnCalendar=*-*-* 08:00:00
 Persistent=true
 
+# 3時間ごとの実行設定の場合:
+# OnCalendar=*-*-* *:00/3:00
+
 [Install]
 WantedBy=timers.target
 EOF
@@ -85,6 +91,11 @@ sudo systemctl status rss-feeder.timer
 # rss-feeder.ps1
 # .envファイルを使用する場合、環境変数設定は不要
 Set-Location "C:\path\to\personal-rss"
+node src/main.js
+
+# 3時間ごとの実行用スクリプト (rss-feeder-hourly.ps1)
+Set-Location "C:\path\to\personal-rss"
+$env:ENABLE_HOURLY_FILES = "true"
 node src/main.js
 ```
 
@@ -167,6 +178,7 @@ module.exports = {
       OBSIDIAN_API_KEY: 'your-obsidian-api-key'
     },
     cron_restart: '0 8 * * *',
+    // 3時間ごとの実行設定例: cron_restart: '0 */3 * * *',
     autorestart: false,
     watch: false
   }]
@@ -244,10 +256,47 @@ if ! node src/main.js; then
 fi
 ```
 
+## 3時間ごとの実行設定
+
+### 時間別ファイル生成機能
+
+環境変数 `ENABLE_HOURLY_FILES=true` を設定することで、ファイル名に実行時間を含む時間別ファイルを生成できます。
+
+```
+# 通常のファイル名
+output/RSS/2025-07-01/tech/ai.md
+
+# 時間別ファイル名 (3時間ごとの実行時)
+output/RSS/2025-07-01/tech/ai-2025-07-01-09.md
+output/RSS/2025-07-01/tech/ai-2025-07-01-12.md
+output/RSS/2025-07-01/tech/ai-2025-07-01-15.md
+```
+
+### 設定例
+- **0:00, 3:00, 6:00, 9:00, 12:00, 15:00, 18:00, 21:00** に実行
+- 各実行時に独立したファイルを生成
+- 重複記事は最初の検出時間のファイルにのみ記録
+
+### 実行間隔の調整
+```bash
+# 1時間ごと
+0 * * * * command
+
+# 2時間ごと  
+0 */2 * * * command
+
+# 4時間ごと
+0 */4 * * * command
+
+# 6時間ごと (1日4回)
+0 */6 * * * command
+```
+
 ## 推奨設定
 
 **Linux/macOS**: systemd timer または PM2
 **Windows**: Task Scheduler
 **開発環境**: cron または手動実行
+**3時間ごとの実行**: `ENABLE_HOURLY_FILES=true` + cron `0 */3 * * *`
 
 各システムでの設定完了後、初回は手動実行でテストしてから自動実行を開始してください。

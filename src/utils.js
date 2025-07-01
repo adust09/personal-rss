@@ -35,6 +35,24 @@ class Utils {
   }
 
   /**
+   * Format date with hour for file naming
+   * @param {Date} date 
+   * @returns {string} YYYY-MM-DD-HH format
+   */
+  static formatDateWithHour(date = new Date()) {
+    return format(date, 'yyyy-MM-dd-HH');
+  }
+
+  /**
+   * Get current hour
+   * @param {Date} date 
+   * @returns {string} HH format
+   */
+  static getCurrentHour(date = new Date()) {
+    return format(date, 'HH');
+  }
+
+  /**
    * Create directory if it doesn't exist
    * @param {string} dirPath 
    */
