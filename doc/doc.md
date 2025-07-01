@@ -1,41 +1,41 @@
-# RSS Feeder - 技術仕様書
+# RSS Feeder - Technical Specifications
 
-## 概要
-ローカルサーバーで動作し、RSSフィードを取得してGemini APIでタグ付けと要約を行い、Obsidian Local REST API経由でObsidian Vaultに直接マークダウンファイルを作成するシステム
+## Overview
+A system that runs on a local server, fetches RSS feeds, performs tagging and summarization using the Gemini API, and creates markdown files directly in an Obsidian Vault via the Obsidian Local REST API
 
-## システム構成
+## System Architecture
 
-### プロジェクト構造
+### Project Structure
 ```
 personal-rss/
 ├── src/
-│   ├── main.js          # メインスクリプト
-│   ├── config.js        # 設定管理
-│   ├── feedFetcher.js   # RSSフィード取得
-│   ├── llmProcessor.js  # Gemini API処理
-│   ├── obsidianAPI.js   # Obsidian Local REST API連携
-│   └── utils.js         # ユーティリティ関数
+│   ├── main.js          # Main script
+│   ├── config.js        # Configuration management
+│   ├── feedFetcher.js   # RSS feed retrieval
+│   ├── llmProcessor.js  # Gemini API processing
+│   ├── obsidianAPI.js   # Obsidian Local REST API integration
+│   └── utils.js         # Utility functions
 ├── config/
-│   └── feeds.json       # フィード設定
+│   └── feeds.json       # Feed configuration
 ├── doc/
-│   ├── doc.md           # 技術仕様書（本ファイル）
-│   ├── scheduler-setup.md # スケジューラー設定ガイド
-│   └── test.md          # テスト仕様
-├── .env.example         # 環境変数テンプレート
-├── .gitignore          # Git除外設定
-└── package.json         # Node.js依存関係
+│   ├── doc.md           # Technical specifications (this file)
+│   ├── scheduler-setup.md # Scheduler setup guide
+│   └── test.md          # Test specifications
+├── .env.example         # Environment variable template
+├── .gitignore          # Git exclusion settings
+└── package.json         # Node.js dependencies
 ```
 
-### 技術スタック
-- **実行環境**: ローカルサーバー (Windows/macOS/Linux)
-- **ランタイム**: Node.js 18+
-- **スケジューラー**: cron/systemd/Task Scheduler/PM2
-- **依存関係**:
-  - rss-parser: RSS/XMLパース
-  - axios: HTTP リクエスト (RSS + Obsidian API)
-  - date-fns: 日付操作
-  - js-yaml: YAML frontmatter生成
-  - dotenv: 環境変数管理
+### Technology Stack
+- **Runtime Environment**: Local server (Windows/macOS/Linux)
+- **Runtime**: Node.js 18+
+- **Scheduler**: cron/systemd/Task Scheduler/PM2
+- **Dependencies**:
+  - rss-parser: RSS/XML parsing
+  - axios: HTTP requests (RSS + Obsidian API)
+  - date-fns: Date manipulation
+  - js-yaml: YAML frontmatter generation
+  - dotenv: Environment variable management
 
 ## 処理フロー詳細
 
