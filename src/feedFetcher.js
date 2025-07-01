@@ -120,21 +120,21 @@ class FeedFetcher {
   }
 
   /**
-   * Filter articles by date (past 3 days articles)
+   * Filter articles by date (past 1 day articles)
    * @param {Array<Object>} articles 
-   * @returns {Array<Object>} Past 3 days articles
+   * @returns {Array<Object>} Past 1 day articles
    */
   filterTodayArticles(articles) {
     const today = new Date();
-    const threeDaysAgo = new Date(today.getTime() - 3 * 24 * 60 * 60 * 1000);
-    const threeDaysAgoStart = new Date(threeDaysAgo.getFullYear(), threeDaysAgo.getMonth(), threeDaysAgo.getDate());
+    const oneDayAgo = new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const oneDayAgoStart = new Date(oneDayAgo.getFullYear(), oneDayAgo.getMonth(), oneDayAgo.getDate());
 
     const recentArticles = articles.filter(article => {
       const pubDate = new Date(article.pubDate);
-      return pubDate >= threeDaysAgoStart;
+      return pubDate >= oneDayAgoStart;
     });
 
-    Utils.log('info', `Filtered ${recentArticles.length} articles from past 3 days out of ${articles.length} total`);
+    Utils.log('info', `Filtered ${recentArticles.length} articles from past 1 day out of ${articles.length} total`);
     
     return recentArticles;
   }
