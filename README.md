@@ -1,79 +1,79 @@
 # RSS Feeder - Local Server + Obsidian Integration
 
-ローカルサーバーで動作し、Obsidian Local REST API経由でObsidian Vaultに直接マークダウンファイルを作成するRSSフィード処理システム
+RSS feed processing system that runs on a local server and creates markdown files directly in an Obsidian Vault via the Obsidian Local REST API
 
-## 🚀 クイックスタート
+## 🚀 Quick Start
 
-### 1. 前提条件
-- **Obsidian**: Local REST APIプラグインを有効化
-- **Node.js**: 18以上
-- **環境**: ローカルマシンでObsidianが起動している
+### 1. Prerequisites
+- **Obsidian**: Enable Local REST API plugin
+- **Node.js**: 18 or higher
+- **Environment**: Obsidian running on local machine
 
-### 2. Obsidian設定
+### 2. Obsidian Setup
 ```bash
-# 1. Obsidianを起動
+# 1. Launch Obsidian
 # 2. Settings > Community plugins > Browse
-# 3. "Local REST API" をインストール・有効化
-# 4. API Keyを生成・コピー
+# 3. Install and enable "Local REST API"
+# 4. Generate and copy API Key
 ```
 
-### 3. プロジェクトセットアップ
+### 3. Project Setup
 ```bash
-# 依存関係インストール
+# Install dependencies
 npm install
 
-# 環境変数設定（.envファイル推奨）
+# Environment variable setup (recommended: .env file)
 cp .env.example .env
-# .envファイルを編集してAPIキーを設定
+# Edit .env file to set API keys
 
-# または直接環境変数設定
+# Or set environment variables directly
 export GEMINI_API_KEY="your-gemini-api-key"
 export OBSIDIAN_API_KEY="your-obsidian-api-key"
 
-# フィード設定（config/feeds.json で enabled: true に設定）
+# Feed configuration (set enabled: true in config/feeds.json)
 ```
 
-### 4. 実行
+### 4. Execution
 ```bash
-# 手動実行
+# Manual execution
 npm start
 
-# ヘルスチェック（Obsidian接続確認）
+# Health check (verify Obsidian connection)
 node src/main.js health
 
-# テストモード（限定記事数）
+# Test mode (limited number of articles)
 node src/main.js test
 ```
 
-### 5. 自動実行設定
-- [スケジューラー設定ガイド](scheduler-setup.md)参照
-- cron、systemd timer、Windows Task Schedulerなど
+### 5. Automated Execution Setup
+- Refer to [Scheduler Setup Guide](scheduler-setup.md)
+- cron, systemd timer, Windows Task Scheduler, etc.
 
-## 📁 出力先
+## 📁 Output Directory
 ```
 Obsidian Vault/
 └── RSS/
     └── 2025-06-28/
-        ├── index.md         # 日別概要
+        ├── index.md         # Daily overview
         ├── tech/
-        │   ├── ai.md        # AI関連記事
-        │   └── web.md       # Web開発関連
-        └── business.md      # ビジネス関連
+        │   ├── ai.md        # AI-related articles
+        │   └── web.md       # Web development related
+        └── business.md      # Business related
 ```
 
-## 🔧 設定
+## 🔧 Configuration
 
-### 環境変数設定（.env ファイル推奨）
+### Environment Variable Setup (recommended: .env file)
 ```bash
-# .env.example をコピーして .env ファイルを作成
+# Copy .env.example to create .env file
 cp .env.example .env
 ```
 
-**必須変数:**
-- `GEMINI_API_KEY`: Gemini API キー
-- `OBSIDIAN_API_KEY`: Obsidian Local REST API キー
+**Required Variables:**
+- `GEMINI_API_KEY`: Gemini API key
+- `OBSIDIAN_API_KEY`: Obsidian Local REST API key
 
-### フィード設定 (config/feeds.json)
+### Feed Configuration (config/feeds.json)
 ```json
 {
   "feeds": [
@@ -87,32 +87,32 @@ cp .env.example .env
 }
 ```
 
-### オプション環境変数
-- `RSS_FEEDS`: RSSフィードURLのJSON配列 (feeds.jsonより優先)
+### Optional Environment Variables
+- `RSS_FEEDS`: JSON array of RSS feed URLs (takes precedence over feeds.json)
 - `OBSIDIAN_API_URL`: Obsidian API URL (default: `https://127.0.0.1:27124/`)
-- `DEBUG`: デバッグモード (default: `false`)
-- `GEMINI_MODEL`: Geminiモデル名 (default: `gemini-2.5-flash`)
-- `GEMINI_REQUEST_DELAY`: API呼び出し間隔ms (default: `1000`)
+- `DEBUG`: Debug mode (default: `false`)
+- `GEMINI_MODEL`: Gemini model name (default: `gemini-2.5-flash`)
+- `GEMINI_REQUEST_DELAY`: API call interval in ms (default: `1000`)
 
-## 📚 詳細情報
-- [技術仕様書](doc/doc.md) - システム詳細、API仕様、エラーハンドリング等
-- [スケジューラー設定](doc/scheduler-setup.md) - 自動実行設定方法
-- [テスト仕様](doc/test.md) - ユニットテスト項目
-- [CLAUDE.md](CLAUDE.md) - Claude Code向け開発ガイド
+## 📚 Detailed Information
+- [Technical Specifications](doc/doc.md) - System details, API specifications, error handling, etc.
+- [Scheduler Setup](doc/scheduler-setup.md) - Automated execution setup methods
+- [Test Specifications](doc/test.md) - Unit test items
+- [CLAUDE.md](CLAUDE.md) - Development guide for Claude Code
 
-## 🐛 トラブルシューティング
+## 🐛 Troubleshooting
 
-### よくある問題
-- **Obsidian API接続失敗**: Obsidianが起動してLocal REST APIプラグインが有効か確認
-- **API Key エラー**: 環境変数が正しく設定されているか確認
-- **RSS取得失敗**: フィードURLの有効性確認
+### Common Issues
+- **Obsidian API Connection Failure**: Verify that Obsidian is running and Local REST API plugin is enabled
+- **API Key Error**: Check that environment variables are correctly set
+- **RSS Fetch Failure**: Verify feed URL validity
 
-### デバッグ実行
+### Debug Execution
 ```bash
-# 詳細ログ表示（.envファイルでDEBUG=trueに設定するか）
+# Display detailed logs (set DEBUG=true in .env file or)
 export DEBUG=true
 node src/main.js test
 
-# Obsidian接続テスト
+# Obsidian connection test
 curl -H "Authorization: Bearer YOUR_API_KEY" https://127.0.0.1:27124//vault/
 ```
