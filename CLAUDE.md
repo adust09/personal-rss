@@ -30,8 +30,12 @@ npm install
 export GEMINI_API_KEY="your-api-key"
 export RSS_FEEDS='["https://example.com/feed.xml"]'
 
-# Run full process
+# Run full process once
 npm start
+
+# Run in daemon mode (12-hour scheduling)
+export SCHEDULE_ENABLED=true
+npm run daemon
 
 # Test mode (limited articles)
 node src/main.js test
@@ -40,15 +44,11 @@ node src/main.js test
 node src/main.js health
 ```
 
-**GitHub Actions**:
-- Automatic daily execution at 8:00 AM JST (23:00 UTC)
-- Manual execution via GitHub Actions interface
-- Test mode available via workflow dispatch
-
 **Configuration Management**:
 - All settings managed via environment variables
 - GitHub Secrets for sensitive data: `GEMINI_API_KEY`, `RSS_FEEDS`
 - Optional configuration: `OUTPUT_DIRECTORY`, `DEBUG`, `TIMEZONE`, etc.
+- **Scheduler settings**: `SCHEDULE_ENABLED`, `SCHEDULE_CRON`, `RUN_ON_START`
 
 **Testing**:
 - Local execution with test mode
@@ -87,6 +87,7 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 - axios (HTTP requests)
 - date-fns (date formatting)
 - js-yaml (YAML frontmatter)
+- node-cron (scheduling)
 
 ## Important Constraints
 
@@ -117,9 +118,11 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 **Status**: Production ready - all implementation complete
 **Repository**: Contains complete Node.js implementation with GitHub Actions
 **Features**: 
-- Daily automated RSS processing
+- **One-time execution**: `npm start` for single RSS processing
+- **Daemon mode**: `npm run daemon` for automatic 12-hour scheduling
 - Gemini API integration for intelligent tagging
 - Japanese summarization
 - Organized markdown output
 - Error handling and logging
 - Test and health check modes
+- Graceful shutdown (SIGTERM/SIGINT)

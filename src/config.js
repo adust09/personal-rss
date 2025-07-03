@@ -205,6 +205,54 @@ class Config {
       return [];
     }
   }
+
+  /**
+   * Check if hourly file generation is enabled
+   * @returns {boolean} Whether to include hour in filename
+   */
+  getEnableHourlyFiles() {
+    return process.env.ENABLE_HOURLY_FILES === "true";
+  }
+
+  /**
+   * Check if scheduler is enabled
+   * @returns {boolean} Whether scheduler should run
+   */
+  isScheduleEnabled() {
+    return process.env.SCHEDULE_ENABLED === "true";
+  }
+
+  /**
+   * Get cron schedule pattern
+   * @returns {string} Cron expression for scheduling
+   */
+  getScheduleCron() {
+    return process.env.SCHEDULE_CRON || "0 */12 * * *"; // Default: every 12 hours
+  }
+
+  /**
+   * Get timezone for scheduler
+   * @returns {string} Timezone string
+   */
+  getScheduleTimezone() {
+    return process.env.SCHEDULE_TIMEZONE || this.getTimezone();
+  }
+
+  /**
+   * Check if daemon mode is enabled
+   * @returns {boolean} Whether to run in daemon mode
+   */
+  isDaemonMode() {
+    return process.env.DAEMON_MODE === "true";
+  }
+
+  /**
+   * Check if initial execution should run on daemon start
+   * @returns {boolean} Whether to run immediately on start
+   */
+  getRunOnStart() {
+    return process.env.RUN_ON_START === "true";
+  }
 }
 
 module.exports = new Config();
