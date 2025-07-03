@@ -80,7 +80,29 @@
       "description": "zenn(web)",
       "category": "tech/go",
       "enabled": true
+    },
+    {
+      "name": "Feed for CyberAgent",
+      "url": "https://developers.cyberagent.co.jp/blog/feed/",
+      "description": "CyberAgent",
+      "category": "tech/cyberagent",
+      "enabled": true
+    },
+    {
+      "name": "Feed for Classmethod",
+      "url": "https://dev.classmethod.jp/feed/",
+      "description": "classmethod",
+      "category": "tech/classmethod",
+      "enabled": true
+    },
+    {
+      "name": "Feed for LyCorp",
+      "url": "https://techblog.lycorp.co.jp/ja/feed/index.xml",
+      "description": "LyCorp",
+      "category": "tech/lycorp",
+      "enabled": true
     }
+    
   ],
   "settings": {
     "defaultEnabled": false,
