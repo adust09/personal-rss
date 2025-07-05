@@ -101,6 +101,20 @@
       "description": "LyCorp",
       "category": "tech/lycorp",
       "enabled": true
+    },
+    {
+      "name": "Feed for arxiv(cs.CR)",
+      "url": "https://rss.arxiv.org/rss/cs.CR",
+      "description": "arxiv(cs.CR)",
+      "category": "cryptography",
+      "enabled": true
+    },
+    {
+      "name": "Feed for arxiv(cs.AI)",
+      "url": "https://rss.arxiv.org/rss/cs.AI",
+      "description": "arxiv(cs.AI)",
+      "category": "AI",
+      "enabled": true
     }
     
   ],
