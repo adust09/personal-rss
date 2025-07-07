@@ -115,6 +115,13 @@
       "description": "arxiv(cs.AI)",
       "category": "AI",
       "enabled": true
+    },
+    {
+      "name": "Feed for note(fukkyy)",
+      "url": "https://note.com/fukkyy/rss",
+      "description": "note(fukkyy)",
+      "category": "business/fukkyy",
+      "enabled": true
     }
     
   ],
