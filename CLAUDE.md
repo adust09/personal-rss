@@ -53,12 +53,12 @@ npm install
 export GEMINI_API_KEY="your-api-key"
 export RSS_FEEDS='["https://example.com/feed.xml"]'
 
-# Run full process once
-npm start
-
-# Run in daemon mode (12-hour scheduling)
-export SCHEDULE_ENABLED=true
+# Run in daemon mode (default, 12-hour scheduling)
 npm run daemon
+
+# Run full process once (backward compatibility)
+export SCHEDULE_ENABLED=false
+npm start
 
 # Test mode (limited articles)
 node src/main.js test
@@ -71,7 +71,11 @@ node src/main.js health
 - All settings managed via environment variables
 - GitHub Secrets for sensitive data: `GEMINI_API_KEY`, `RSS_FEEDS`
 - Optional configuration: `OUTPUT_DIRECTORY`, `DEBUG`, `TIMEZONE`, etc.
-- **Scheduler settings**: `SCHEDULE_ENABLED`, `SCHEDULE_CRON`, `RUN_ON_START`
+- **Scheduler settings**: 
+  - `SCHEDULE_ENABLED` (default: true - set to false for one-time execution)
+  - `SCHEDULE_CRON` (default: "0 */12 * * *" - every 12 hours)
+  - `SCHEDULE_TIMEZONE` (default: Asia/Tokyo)
+  - `RUN_ON_START` (default: false - run immediately on daemon start)
 
 **Testing**:
 - Local execution with test mode
@@ -110,7 +114,7 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 - axios (HTTP requests)
 - date-fns (date formatting)
 - js-yaml (YAML frontmatter)
-- node-cron (scheduling)
+- node-cron (built-in scheduler for daemon mode)
 
 ## Important Constraints
 
@@ -141,8 +145,9 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 **Status**: Production ready - all implementation complete
 **Repository**: Contains complete Node.js implementation with GitHub Actions
 **Features**: 
-- **One-time execution**: `npm start` for single RSS processing
-- **Daemon mode**: `npm run daemon` for automatic 12-hour scheduling
+- **Daemon mode**: `npm run daemon` for automatic scheduling (default usage)
+- **One-time execution**: `SCHEDULE_ENABLED=false npm start` for single RSS processing
+- Built-in scheduler with customizable cron patterns
 - Gemini API integration for intelligent tagging
 - Japanese summarization
 - Organized markdown output
@@ -153,3 +158,7 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 ## Project Notes
 
 - このプロジェクトではGithub Acrionsを使わず、ローカルで実行しています。
+
+## Local Execution Notes
+
+- 基本的にdarmonで起動します。

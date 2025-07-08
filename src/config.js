@@ -219,7 +219,7 @@ class Config {
    * @returns {boolean} Whether scheduler should run
    */
   isScheduleEnabled() {
-    return process.env.SCHEDULE_ENABLED === "true";
+    return process.env.SCHEDULE_ENABLED !== "false";
   }
 
   /**
