@@ -253,6 +253,117 @@ class Config {
   getRunOnStart() {
     return process.env.RUN_ON_START === "true";
   }
+
+  /**
+   * Get tag configuration from tags.json
+   * @returns {Object} Tag configuration object
+   */
+  getTags() {
+    try {
+      const tagsPath = path.join(process.cwd(), "config", "tags.json");
+
+      if (!fs.existsSync(tagsPath)) {
+        console.warn("tags.json file not found at:", tagsPath);
+        return this.getDefaultTags();
+      }
+
+      const tagsData = JSON.parse(fs.readFileSync(tagsPath, "utf8"));
+
+      // Validate tags structure
+      if (!tagsData.tags || typeof tagsData.tags !== 'object') {
+        console.warn("Invalid tags.json structure");
+        return this.getDefaultTags();
+      }
+
+      return tagsData;
+    } catch (error) {
+      console.error("Error reading tags.json:", error.message);
+      return this.getDefaultTags();
+    }
+  }
+
+  /**
+   * Get default tags configuration (fallback)
+   * @returns {Object} Default tag configuration
+   */
+  getDefaultTags() {
+    return {
+      "tags": {
+        "ai": {
+          "display": "AI",
+          "description": "Artificial Intelligence and Machine Learning",
+          "subtags": ["llm", "rag", "ml", "cv", "nlp"]
+        },
+        "tech": {
+          "display": "Technology",
+          "description": "Technology and Software Development",
+          "subtags": ["web", "mobile", "devops", "security", "programming", "data"]
+        },
+        "business": {
+          "display": "Business",
+          "description": "Business and Management",
+          "subtags": ["startup", "marketing", "management"]
+        }
+      },
+      "config": {
+        "maxTagsPerArticle": 3,
+        "defaultTag": "uncategorized",
+        "allowMultipleParentTags": false
+      }
+    };
+  }
+
+  /**
+   * Get list of available parent tags
+   * @returns {Array<string>} Array of parent tag names
+   */
+  getAvailableParentTags() {
+    const tagsConfig = this.getTags();
+    return Object.keys(tagsConfig.tags || {});
+  }
+
+  /**
+   * Get subtags for a specific parent tag
+   * @param {string} parentTag
+   * @returns {Array<string>} Array of subtag names
+   */
+  getSubtags(parentTag) {
+    const tagsConfig = this.getTags();
+    const tagData = tagsConfig.tags?.[parentTag];
+    return tagData?.subtags || [];
+  }
+
+  /**
+   * Get formatted tag list for prompts
+   * @returns {string} Formatted tag list string
+   */
+  getFormattedTagList() {
+    const tagsConfig = this.getTags();
+    const tags = tagsConfig.tags || {};
+    
+    return Object.entries(tags)
+      .map(([parentTag, tagData]) => {
+        const subtags = tagData.subtags || [];
+        if (subtags.length > 0) {
+          return `- ${parentTag} (${tagData.description}): ${subtags.join(", ")}`;
+        }
+        return `- ${parentTag} (${tagData.description})`;
+      })
+      .join("\n");
+  }
+
+  /**
+   * Get tag configuration settings
+   * @returns {Object} Tag configuration settings
+   */
+  getTagConfig() {
+    const tagsConfig = this.getTags();
+    return tagsConfig.config || {
+      maxTagsPerArticle: 3,
+      defaultTag: "uncategorized",
+      allowMultipleParentTags: false
+    };
+  }
 }
 
 module.exports = new Config();

@@ -112,10 +112,13 @@ class LLMProcessor {
   async getArticleTags(article) {
     // Load prompt template and replace variables
     const promptTemplate = await Utils.loadPrompt('tagging.md');
+    const formattedTagList = config.getFormattedTagList();
+    
     const prompt = Utils.replacePromptVariables(promptTemplate, {
       title: article.title,
       description: article.description,
-      categories: article.categories?.join(', ') || 'なし'
+      categories: article.categories?.join(', ') || 'なし',
+      availableTags: formattedTagList
     });
 
     const response = await Utils.retry(
@@ -126,14 +129,18 @@ class LLMProcessor {
     );
 
     // Parse tags from response
-    const tags = response
+    const tagConfig = config.getTagConfig();
+    const rawTags = response
       .trim()
       .split(',')
       .map(tag => tag.trim().toLowerCase())
       .filter(tag => tag.length > 0)
-      .slice(0, 3); // Limit to 3 tags max
+      .slice(0, tagConfig.maxTagsPerArticle);
 
-    return tags.length > 0 ? tags : ['uncategorized'];
+    // Process hierarchical tags
+    const processedTags = this.processHierarchicalTags(rawTags);
+    
+    return processedTags.length > 0 ? processedTags : [tagConfig.defaultTag];
   }
 
   /**
@@ -329,6 +336,76 @@ class LLMProcessor {
       Utils.log('error', `Failed to generate keyword summary for "${keyword}": ${error.message}`);
       return `${keyword}に関する記事 ${articles.length}件を収集しました。詳細は各記事をご確認ください。`;
     }
+  }
+
+  /**
+   * Process hierarchical tags from raw tag response
+   * @param {Array<string>} rawTags 
+   * @returns {Array<string>} Processed hierarchical tags
+   */
+  processHierarchicalTags(rawTags) {
+    const availableParentTags = config.getAvailableParentTags();
+    const processedTags = new Set();
+    
+    for (const rawTag of rawTags) {
+      // Check if it's a parent tag
+      if (availableParentTags.includes(rawTag)) {
+        processedTags.add(rawTag);
+        continue;
+      }
+      
+      // Check if it's a subtag and find its parent
+      let foundParent = false;
+      for (const parentTag of availableParentTags) {
+        const subtags = config.getSubtags(parentTag);
+        if (subtags.includes(rawTag)) {
+          processedTags.add(parentTag);
+          processedTags.add(rawTag);
+          foundParent = true;
+          break;
+        }
+      }
+      
+      // If not found in any category, try to match as close as possible
+      if (!foundParent) {
+        const closestParent = this.findClosestParentTag(rawTag);
+        if (closestParent) {
+          processedTags.add(closestParent);
+        }
+      }
+    }
+    
+    return Array.from(processedTags);
+  }
+  
+  /**
+   * Find the closest parent tag for an unknown tag
+   * @param {string} unknownTag 
+   * @returns {string|null} Closest parent tag or null
+   */
+  findClosestParentTag(unknownTag) {
+    const availableParentTags = config.getAvailableParentTags();
+    
+    // Simple keyword matching
+    const tagLower = unknownTag.toLowerCase();
+    
+    // AI-related keywords
+    if (['ai', 'artificial', 'intelligence', 'machine', 'learning', 'ml', 'llm', 'gpt', 'neural', 'deep'].some(keyword => tagLower.includes(keyword))) {
+      return 'ai';
+    }
+    
+    // Tech-related keywords
+    if (['tech', 'technology', 'software', 'programming', 'code', 'development', 'web', 'mobile', 'app'].some(keyword => tagLower.includes(keyword))) {
+      return 'tech';
+    }
+    
+    // Business-related keywords
+    if (['business', 'startup', 'company', 'market', 'finance', 'investment'].some(keyword => tagLower.includes(keyword))) {
+      return 'business';
+    }
+    
+    // Default to first available parent tag
+    return availableParentTags[0] || null;
   }
 
   /**

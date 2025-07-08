@@ -23,12 +23,12 @@
 #### Tagging Process
 - Use Gemini API (`gemini-2.5-flash`)
 - Analyze article titles and descriptions
-- Hierarchical tag system:
-  - tech/ai, tech/web, tech/mobile, tech/devops
-  - tech/security, tech/programming, tech/data
-  - business, science, lifestyle, news, finance, education
-- Automatically assign 1-3 tags per article
+- Configurable hierarchical tag system from `config/tags.json`
+- Dynamic tag list generation for AI prompts
+- Automatically assign parent tag + relevant subtags
+- Maximum tags per article configurable (default: 3)
 - Rate limiting: Configurable request intervals
+- Fallback handling for unrecognized tags
 
 #### Summary Generation
 - Process articles grouped by tags
@@ -69,6 +69,38 @@ SCHEDULE_TIMEZONE      # Scheduler timezone (default: TIMEZONE value)
 RUN_ON_START           # Run immediately on startup (default: false)
 ENABLE_HOURLY_FILES    # Enable hourly file generation (default: false)
 ```
+
+#### Tag Configuration (config/tags.json)
+The system uses a configurable tag hierarchy defined in `config/tags.json`:
+
+```json
+{
+  "tags": {
+    "ai": {
+      "display": "AI",
+      "description": "Artificial Intelligence and Machine Learning",
+      "subtags": ["llm", "rag", "ml", "cv", "nlp", "chatbot"]
+    },
+    "tech": {
+      "display": "Technology",
+      "description": "Technology and Software Development",
+      "subtags": ["web", "mobile", "devops", "security", "programming"]
+    }
+  },
+  "config": {
+    "maxTagsPerArticle": 3,
+    "defaultTag": "uncategorized",
+    "allowMultipleParentTags": false
+  }
+}
+```
+
+**Tag System Features:**
+- Hierarchical tags with parent and subtags
+- Configurable via JSON file
+- Fallback to default tags if config file missing
+- Automatic parent+subtag assignment (e.g., "ai, llm")
+- Validation and error handling
 
 
 ## Output Format
