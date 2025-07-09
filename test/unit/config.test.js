@@ -35,11 +35,11 @@ describe('Config - Scheduler Methods', () => {
       });
     });
 
-    test('should return false when SCHEDULE_ENABLED is not set', () => {
+    test('should return true when SCHEDULE_ENABLED is not set (default behavior)', () => {
       testUtils.withEnv({}, () => {
         jest.resetModules();
         const config = require('../../src/config');
-        expect(config.isScheduleEnabled()).toBe(false);
+        expect(config.isScheduleEnabled()).toBe(true);
       });
     });
 
@@ -51,11 +51,11 @@ describe('Config - Scheduler Methods', () => {
       });
     });
 
-    test('should return false when SCHEDULE_ENABLED is any other value', () => {
+    test('should return true when SCHEDULE_ENABLED is any other value (not "false")', () => {
       testUtils.withEnv({ SCHEDULE_ENABLED: 'maybe' }, () => {
         jest.resetModules();
         const config = require('../../src/config');
-        expect(config.isScheduleEnabled()).toBe(false);
+        expect(config.isScheduleEnabled()).toBe(true);
       });
     });
   });
@@ -208,6 +208,131 @@ describe('Config - Scheduler Methods', () => {
         expect(config.isScheduleEnabled()).toBe(true);
         expect(config.getScheduleCron()).toBe('0 */8 * * *');
         expect(config.getScheduleTimezone()).toBe('UTC');
+      });
+    });
+  });
+
+  describe('Tag System Methods', () => {
+    beforeEach(() => {
+      jest.resetModules();
+    });
+
+    describe('getTags', () => {
+      test('should return tags configuration', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const tags = config.getTags();
+          
+          expect(tags).toHaveProperty('tags');
+          expect(tags).toHaveProperty('config');
+          expect(tags.config).toHaveProperty('maxTagsPerArticle');
+          expect(tags.config).toHaveProperty('defaultTag');
+        });
+      });
+
+      test('should have valid tag structure', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const tags = config.getTags();
+          
+          expect(typeof tags.tags).toBe('object');
+          Object.entries(tags.tags).forEach(([tagName, tagData]) => {
+            expect(typeof tagName).toBe('string');
+            expect(tagData).toHaveProperty('display');
+            expect(tagData).toHaveProperty('description');
+            expect(Array.isArray(tagData.subtags)).toBe(true);
+          });
+        });
+      });
+    });
+
+    describe('getAvailableParentTags', () => {
+      test('should return array of parent tag names', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const parentTags = config.getAvailableParentTags();
+          
+          expect(Array.isArray(parentTags)).toBe(true);
+          expect(parentTags.length).toBeGreaterThan(0);
+          expect(parentTags).toContain('ai');
+          expect(parentTags).toContain('tech');
+          expect(parentTags).toContain('business');
+        });
+      });
+    });
+
+    describe('getSubtags', () => {
+      test('should return subtags for ai parent tag', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const subtags = config.getSubtags('ai');
+          
+          expect(Array.isArray(subtags)).toBe(true);
+          expect(subtags).toContain('llm');
+          expect(subtags).toContain('rag');
+          expect(subtags).toContain('ml');
+        });
+      });
+
+      test('should return empty array for non-existent parent tag', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const subtags = config.getSubtags('nonexistent');
+          
+          expect(Array.isArray(subtags)).toBe(true);
+          expect(subtags.length).toBe(0);
+        });
+      });
+    });
+
+    describe('getFormattedTagList', () => {
+      test('should return formatted string of tags', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const formatted = config.getFormattedTagList();
+          
+          expect(typeof formatted).toBe('string');
+          expect(formatted).toContain('ai');
+          expect(formatted).toContain('llm');
+          expect(formatted).toContain('tech');
+        });
+      });
+    });
+
+    describe('getTagConfig', () => {
+      test('should return tag configuration with defaults', () => {
+        testUtils.withEnv({
+          GEMINI_API_KEY: 'test-gemini',
+          OBSIDIAN_API_KEY: 'test-obsidian'
+        }, () => {
+          const config = require('../../src/config');
+          const tagConfig = config.getTagConfig();
+          
+          expect(tagConfig).toHaveProperty('maxTagsPerArticle');
+          expect(tagConfig).toHaveProperty('defaultTag');
+          expect(tagConfig).toHaveProperty('allowMultipleParentTags');
+          expect(typeof tagConfig.maxTagsPerArticle).toBe('number');
+          expect(typeof tagConfig.defaultTag).toBe('string');
+          expect(typeof tagConfig.allowMultipleParentTags).toBe('boolean');
+        });
       });
     });
   });

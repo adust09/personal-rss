@@ -11,23 +11,19 @@ variables: ["title", "description", "categories"]
 - ある記事を複数の要約ファイルに記載することはできません
 
 利用可能なタグカテゴリ:
-- tech/ai (人工知能、機械学習、LLM関連)
-- tech/web (ウェブ開発、フロントエンド、バックエンド)
-- tech/mobile (モバイル開発、iOS、Android)
-- tech/devops (DevOps、インフラ、クラウド)
-- tech/security (セキュリティ、暗号化、プライバシー)
-- tech/programming (プログラミング言語、フレームワーク)
-- tech/data (データサイエンス、データベース、ビッグデータ)
-- tech/hardware (ハードウェア、IoT、半導体)
-- business (ビジネス、経営、マーケティング)
-- science (科学、研究、学術)
-- lifestyle (ライフスタイル、健康、エンターテイメント)
-- news (ニュース、時事、政治)
-- finance (金融、投資、暗号通貨)
+{{availableTags}}
 
 記事情報:
 タイトル: {{title}}
 説明: {{description}}
 カテゴリ: {{categories}}
 
-最も適切なタグを1-3個選んで、カンマ区切りで返してください。タグのみを返し、他の説明は不要です。
+記事に最も適切な親タグを1つ選び、必要に応じてサブタグを追加してください。
+- 親タグは必須です（例：ai, tech, business など）
+- サブタグは親タグに関連する具体的な内容を表します（例：llm, rag, web, mobile など）
+- タグはカンマ区切りで返してください。タグのみを返し、他の説明は不要です。
+
+例：
+- AIの記事の場合：ai, llm
+- ウェブ開発の記事の場合：tech, web
+- 投資の記事の場合：finance, investment

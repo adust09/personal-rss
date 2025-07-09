@@ -1,0 +1,44 @@
+{
+  "tags": {
+    "ai": {
+      "display": "AI",
+      "description": "Artificial Intelligence and Machine Learning",
+      "subtags": ["llm", "rag", "ml", "cv", "nlp", "chatbot", "neural-networks"]
+    },
+    "tech": {
+      "display": "Technology",
+      "description": "Technology and Software Development",
+      "subtags": ["web", "mobile", "devops", "security", "programming", "data", "hardware"]
+    },
+    "business": {
+      "display": "Business",
+      "description": "Business, Management, and Marketing",
+      "subtags": ["startup", "marketing", "management", "strategy", "finance"]
+    },
+    "science": {
+      "display": "Science",
+      "description": "Science and Research",
+      "subtags": ["research", "biology", "physics", "chemistry", "medicine"]
+    },
+    "lifestyle": {
+      "display": "Lifestyle",
+      "description": "Lifestyle, Health, and Entertainment",
+      "subtags": ["health", "entertainment", "travel", "food", "sports"]
+    },
+    "news": {
+      "display": "News",
+      "description": "News, Current Events, and Politics",
+      "subtags": ["politics", "world", "economy", "society", "environment"]
+    },
+    "finance": {
+      "display": "Finance",
+      "description": "Finance, Investment, and Cryptocurrency",
+      "subtags": ["investment", "crypto", "stocks", "banking", "economy"]
+    }
+  },
+  "config": {
+    "maxTagsPerArticle": 3,
+    "defaultTag": "uncategorized",
+    "allowMultipleParentTags": false
+  }
+}
