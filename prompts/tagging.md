@@ -22,6 +22,7 @@ variables: ["title", "description", "categories"]
 - 親タグは必須です（例：ai, tech, business など）
 - サブタグは親タグに関連する具体的な内容を表します（例：llm, rag, web, mobile など）
 - タグはカンマ区切りで返してください。タグのみを返し、他の説明は不要です。
+- AI/LLMのように親タグと子タグを合わせて一つのタグにしてはいけません。必ず#AIと#LLMのように二つのタグに分けなさい
 
 例：
 - AIの記事の場合：ai, llm
