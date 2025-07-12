@@ -14,7 +14,7 @@ class Daemon {
     this.rssFeeder = new RSSFeeder();
     this.scheduler = new Scheduler(this.rssFeeder);
     this.isShuttingDown = false;
-    
+
     // Setup signal handlers for graceful shutdown
     this.setupSignalHandlers();
   }
@@ -25,7 +25,7 @@ class Daemon {
   async start() {
     try {
       Utils.log('info', '🔄 Starting RSS Feeder in daemon mode...');
-      
+
       // Validate that scheduler is enabled
       if (!config.isScheduleEnabled()) {
         Utils.log('error', 'Scheduler is not enabled. Set SCHEDULE_ENABLED=true to use daemon mode.');
@@ -47,10 +47,9 @@ class Daemon {
 
       Utils.log('info', '✅ RSS Feeder daemon started successfully');
       Utils.log('info', '   Use Ctrl+C or send SIGTERM to stop gracefully');
-      
+
       // Keep process alive
       this.keepAlive();
-
     } catch (error) {
       Utils.log('error', '❌ Failed to start daemon:', error.message);
       process.exit(1);
@@ -101,7 +100,7 @@ class Daemon {
     });
 
     // Handle uncaught exceptions
-    process.on('uncaughtException', (error) => {
+    process.on('uncaughtException', error => {
       Utils.log('error', 'Uncaught exception:', error.message);
       if (config.isDebugMode()) {
         console.error('Full error details:', error);

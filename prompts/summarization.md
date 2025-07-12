@@ -1,8 +1,8 @@
 ---
-title: "記事要約生成プロンプト"
-description: "カテゴリ別記事群の日本語要約を生成するためのプロンプト"
-version: "1.0"
-variables: ["tag", "articleList"]
+title: '記事要約生成プロンプト'
+description: 'カテゴリ別記事群の日本語要約を生成するためのプロンプト'
+version: '1.0'
+variables: ['tag', 'articleList']
 ---
 
 以下の「{{tag}}」カテゴリの記事群について、日本語で簡潔な要約を作成してください。
@@ -11,6 +11,7 @@ variables: ["tag", "articleList"]
 {{articleList}}
 
 要約の要件:
+
 - 日本語で記述
 - 200-300文字程度
 - 主要なトピックやトレンドを含める

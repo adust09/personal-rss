@@ -32,7 +32,8 @@ RSS Feeder - GitHub Actions + Node.js system that fetches RSS feeds daily, proce
 ## Architecture
 
 This is a Node.js project running on GitHub Actions with the following structure:
-- `src/main.js` - Main orchestration script 
+
+- `src/main.js` - Main orchestration script
 - `src/config.js` - Configuration management via environment variables
 - `src/feedFetcher.js` - RSS feed retrieval using rss-parser and axios
 - `src/llmProcessor.js` - Gemini API integration for tagging and summarization
@@ -43,11 +44,13 @@ This is a Node.js project running on GitHub Actions with the following structure
 ## Development Commands
 
 **Setup**:
+
 ```bash
 npm install
 ```
 
 **Local Testing**:
+
 ```bash
 # Set environment variables
 export GEMINI_API_KEY="your-api-key"
@@ -68,16 +71,18 @@ node src/main.js health
 ```
 
 **Configuration Management**:
+
 - All settings managed via environment variables
 - GitHub Secrets for sensitive data: `GEMINI_API_KEY`, `RSS_FEEDS`
 - Optional configuration: `OUTPUT_DIRECTORY`, `DEBUG`, `TIMEZONE`, etc.
-- **Scheduler settings**: 
+- **Scheduler settings**:
   - `SCHEDULE_ENABLED` (default: true - set to false for one-time execution)
-  - `SCHEDULE_CRON` (default: "0 */12 * * *" - every 12 hours)
+  - `SCHEDULE_CRON` (default: "0 _/12 _ \* \*" - every 12 hours)
   - `SCHEDULE_TIMEZONE` (default: Asia/Tokyo)
   - `RUN_ON_START` (default: false - run immediately on daemon start)
 
 **Testing**:
+
 - Local execution with test mode
 - GitHub Actions logs for monitoring
 - Output file verification in `output/` directory
@@ -93,6 +98,7 @@ node src/main.js health
 ## Output Structure
 
 Files created in repository:
+
 ```
 output/RSS/YYYY-MM-DD/
 ├── index.md         # Daily overview
@@ -107,9 +113,11 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 ## External Dependencies
 
 **Required APIs**:
+
 - Gemini API for tagging and summarization
 
 **Node.js Dependencies**:
+
 - rss-parser (RSS parsing)
 - axios (HTTP requests)
 - date-fns (date formatting)
@@ -119,11 +127,13 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 ## Important Constraints
 
 **GitHub Actions Limitations**:
+
 - 6-hour execution time limit (typically runs in ~5-10 minutes)
 - Rate limits for API calls
 - Repository storage considerations for output files
 
 **Language Requirements**:
+
 - All summaries generated in Japanese, even for English articles
 - Hierarchical tagging system with Japanese understanding
 
@@ -144,7 +154,8 @@ Each markdown file includes YAML frontmatter with date, tag, article count, and 
 
 **Status**: Production ready - all implementation complete
 **Repository**: Contains complete Node.js implementation with GitHub Actions
-**Features**: 
+**Features**:
+
 - **Daemon mode**: `npm run daemon` for automatic scheduling (default usage)
 - **One-time execution**: `SCHEDULE_ENABLED=false npm start` for single RSS processing
 - Built-in scheduler with customizable cron patterns

@@ -15,20 +15,21 @@ async function main() {
   const command = args[0];
 
   switch (command) {
-    case "health":
+    case 'health':
       await feeder.healthCheck();
       break;
 
-    case "test":
+    case 'test':
       await feeder.testRun();
       break;
 
-    case "daemon":
+    case 'daemon': {
       const { startDaemon } = require('./daemon');
       await startDaemon();
       break;
+    }
 
-    case "help":
+    case 'help':
       console.log(`
 RSS Feeder - Personal RSS Processing Tool
 
@@ -84,8 +85,8 @@ Example:
 
 // Run if called directly
 if (require.main === module) {
-  main().catch((error) => {
-    console.error("Fatal error:", error);
+  main().catch(error => {
+    console.error('Fatal error:', error);
     process.exit(1);
   });
 }

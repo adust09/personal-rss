@@ -27,13 +27,13 @@ class FeedFetcher {
 
   /**
    * Fetch and parse an RSS feed
-   * @param {string} feedUrl 
+   * @param {string} feedUrl
    * @returns {Promise<Object>} Parsed feed data
    */
   async fetchFeed(feedUrl) {
     try {
       Utils.log('info', `Fetching feed: ${feedUrl}`);
-      
+
       const response = await axios.get(feedUrl, {
         timeout: TIMEOUT.HTTP_REQUEST,
         headers: {
@@ -42,16 +42,15 @@ class FeedFetcher {
       });
 
       const feed = await this.parser.parseString(response.data);
-      
+
       Utils.log('info', `Successfully fetched feed: ${feed.title} (${feed.items?.length || 0} items)`);
-      
+
       return {
         title: feed.title,
         description: feed.description,
         link: feed.link,
         items: feed.items?.map(item => this.normalizeItem(item)) || []
       };
-      
     } catch (error) {
       Utils.log('error', `Failed to fetch feed ${feedUrl}:`, error.message);
       throw error;
@@ -60,7 +59,7 @@ class FeedFetcher {
 
   /**
    * Fetch multiple RSS feeds concurrently with error handling
-   * @param {Array<string>} feedUrls 
+   * @param {Array<string>} feedUrls
    * @returns {Promise<Array<Object>>} Array of feed data
    */
   async fetchMultipleFeeds(feedUrls) {
@@ -70,8 +69,8 @@ class FeedFetcher {
     }
 
     Utils.log('info', `Fetching ${feedUrls.length} RSS feeds`);
-    
-    const feedPromises = feedUrls.map(async (feedUrl) => {
+
+    const feedPromises = feedUrls.map(async feedUrl => {
       try {
         return await Utils.retry(
           () => this.fetchFeed(feedUrl),
@@ -86,19 +85,19 @@ class FeedFetcher {
     });
 
     const results = await Promise.allSettled(feedPromises);
-    
+
     const successfulFeeds = results
       .filter(result => result.status === 'fulfilled' && result.value !== null)
       .map(result => result.value);
 
     const failedCount = results.length - successfulFeeds.length;
-    
+
     if (failedCount > 0) {
       Utils.log('warn', `${failedCount} feeds failed to fetch`);
     }
-    
+
     Utils.log('info', `Successfully fetched ${successfulFeeds.length} feeds`);
-    
+
     return successfulFeeds;
   }
 
@@ -122,7 +121,7 @@ class FeedFetcher {
 
   /**
    * Filter articles by date (past 1 day articles)
-   * @param {Array<Object>} articles 
+   * @param {Array<Object>} articles
    * @returns {Array<Object>} Past 1 day articles
    */
   filterTodayArticles(articles) {
@@ -136,7 +135,7 @@ class FeedFetcher {
     });
 
     Utils.log('info', `Filtered ${recentArticles.length} articles from past 1 day out of ${articles.length} total`);
-    
+
     return recentArticles;
   }
 
@@ -149,13 +148,13 @@ class FeedFetcher {
     const feedsWithTags = config.getRssFeedsWithTags();
     const feedUrls = feedsWithTags.map(f => f.url);
     const feeds = await this.fetchMultipleFeeds(feedUrls);
-    
+
     let allArticles = [];
-    
+
     for (let i = 0; i < feeds.length; i++) {
       const feed = feeds[i];
       const feedConfig = feedsWithTags[i];
-      
+
       if (feed && feed.items) {
         // Add feed source and parentTag to each article
         const articlesWithSource = feed.items.map(item => ({
@@ -165,7 +164,7 @@ class FeedFetcher {
           feedParentTag: feedConfig.parentTag,
           feedName: feedConfig.name
         }));
-        
+
         allArticles = allArticles.concat(articlesWithSource);
       }
     }
@@ -179,20 +178,20 @@ class FeedFetcher {
 
     // Remove duplicates based on title and link
     allArticles = this.removeDuplicates(allArticles);
-    
+
     Utils.log('info', `Final article count after deduplication: ${allArticles.length}`);
-    
+
     return allArticles;
   }
 
   /**
    * Remove duplicate articles based on title and link
-   * @param {Array<Object>} articles 
+   * @param {Array<Object>} articles
    * @returns {Array<Object>} Deduplicated articles
    */
   removeDuplicates(articles) {
     const seen = new Set();
-    
+
     return articles.filter(article => {
       const key = `${article.title}_${article.link}`;
       if (seen.has(key)) {

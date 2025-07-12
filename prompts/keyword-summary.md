@@ -1,8 +1,8 @@
 ---
-title: "キーワード関連記事要約プロンプト"
-description: "特定キーワードに関連する記事群の特別要約を生成するためのプロンプト"
-version: "1.0"
-variables: ["keyword", "articleList"]
+title: 'キーワード関連記事要約プロンプト'
+description: '特定キーワードに関連する記事群の特別要約を生成するためのプロンプト'
+version: '1.0'
+variables: ['keyword', 'articleList']
 ---
 
 以下の「{{keyword}}」に関連する記事群について、日本語で特別な要約を作成してください。
@@ -11,6 +11,7 @@ variables: ["keyword", "articleList"]
 {{articleList}}
 
 要約の要件:
+
 - 日本語で記述
 - このキーワードに特化した内容で300-400文字程度
 - 「{{keyword}}」に関する最新動向や注目すべきポイントを重点的に説明

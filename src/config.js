@@ -2,12 +2,12 @@
  * Configuration management using environment variables and JSON files
  */
 
-const fs = require("fs");
-const path = require("path");
+const fs = require('fs');
+const path = require('path');
 const { DEFAULTS, PATHS, RETRY, CRON, LIMITS } = require('./constants');
 
 // Load environment variables from .env file
-require("dotenv").config();
+require('dotenv').config();
 
 class Config {
   constructor() {
@@ -15,13 +15,11 @@ class Config {
   }
 
   validateRequiredEnvVars() {
-    const required = ["GEMINI_API_KEY", "OBSIDIAN_API_KEY"];
-    const missing = required.filter((key) => !process.env[key]);
+    const required = ['GEMINI_API_KEY', 'OBSIDIAN_API_KEY'];
+    const missing = required.filter(key => !process.env[key]);
 
     if (missing.length > 0) {
-      throw new Error(
-        `Missing required environment variables: ${missing.join(", ")}`
-      );
+      throw new Error(`Missing required environment variables: ${missing.join(', ')}`);
     }
   }
 
@@ -44,7 +42,7 @@ class Config {
       try {
         return JSON.parse(feedsString);
       } catch (error) {
-        console.error("Error parsing RSS_FEEDS environment variable:", error);
+        console.error('Error parsing RSS_FEEDS environment variable:', error);
       }
     }
 
@@ -53,17 +51,15 @@ class Config {
       const feedsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.FEEDS_CONFIG_FILE);
 
       if (!fs.existsSync(feedsPath)) {
-        console.warn("feeds.json file not found at:", feedsPath);
+        console.warn('feeds.json file not found at:', feedsPath);
         return [];
       }
 
-      const feedsData = JSON.parse(fs.readFileSync(feedsPath, "utf8"));
+      const feedsData = JSON.parse(fs.readFileSync(feedsPath, 'utf8'));
 
       // Extract enabled feeds
       if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
-        return feedsData.feeds
-          .filter((feed) => feed.enabled === true)
-          .map((feed) => feed.url);
+        return feedsData.feeds.filter(feed => feed.enabled === true).map(feed => feed.url);
       }
 
       // Fallback: if feeds.json has different structure
@@ -71,10 +67,10 @@ class Config {
         return feedsData;
       }
 
-      console.warn("Invalid feeds.json structure");
+      console.warn('Invalid feeds.json structure');
       return [];
     } catch (error) {
-      console.error("Error reading feeds.json:", error.message);
+      console.error('Error reading feeds.json:', error.message);
       return [];
     }
   }
@@ -104,11 +100,11 @@ class Config {
   }
 
   isDebugMode() {
-    return process.env.DEBUG === "true";
+    return process.env.DEBUG === 'true';
   }
 
   getIgnoreSSLErrors() {
-    return process.env.IGNORE_SSL_ERRORS === "true";
+    return process.env.IGNORE_SSL_ERRORS === 'true';
   }
 
   getTemplatesDirectory() {
@@ -125,7 +121,7 @@ class Config {
     if (envFeeds) {
       return envFeeds;
     }
-    
+
     // Fall back to file-based configuration
     return this.getFeedsFromFile();
   }
@@ -135,35 +131,35 @@ class Config {
     if (!feedsString) {
       return null;
     }
-    
+
     try {
       const urls = JSON.parse(feedsString);
       return urls.map(url => ({ url, parentTag: DEFAULTS.PARENT_TAG }));
     } catch (error) {
-      console.error("Error parsing RSS_FEEDS environment variable:", error);
+      console.error('Error parsing RSS_FEEDS environment variable:', error);
       return null;
     }
   }
 
   getFeedsFromFile() {
     const feedsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.FEEDS_CONFIG_FILE);
-    
+
     if (!fs.existsSync(feedsPath)) {
-      console.warn("feeds.json file not found at:", feedsPath);
+      console.warn('feeds.json file not found at:', feedsPath);
       return [];
     }
-    
+
     try {
       const feedsData = this.readFeedsFile(feedsPath);
       return this.processFeedsData(feedsData);
     } catch (error) {
-      console.error("Error reading feeds.json:", error.message);
+      console.error('Error reading feeds.json:', error.message);
       return [];
     }
   }
 
   readFeedsFile(feedsPath) {
-    const rawData = fs.readFileSync(feedsPath, "utf8");
+    const rawData = fs.readFileSync(feedsPath, 'utf8');
     return JSON.parse(rawData);
   }
 
@@ -171,20 +167,20 @@ class Config {
     // Handle structured feeds format
     if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
       return feedsData.feeds
-        .filter((feed) => feed.enabled === true)
-        .map((feed) => ({
+        .filter(feed => feed.enabled === true)
+        .map(feed => ({
           url: feed.url,
           parentTag: feed.category || DEFAULTS.PARENT_TAG,
           name: feed.name
         }));
     }
-    
+
     // Handle simple array format
     if (Array.isArray(feedsData)) {
       return feedsData.map(url => ({ url, parentTag: DEFAULTS.PARENT_TAG }));
     }
-    
-    console.warn("Invalid feeds.json structure");
+
+    console.warn('Invalid feeds.json structure');
     return [];
   }
 
@@ -202,7 +198,7 @@ class Config {
           return words.filter(word => typeof word === 'string' && word.trim().length > 0);
         }
       } catch (error) {
-        console.error("Error parsing WATCH_WORDS environment variable:", error);
+        console.error('Error parsing WATCH_WORDS environment variable:', error);
       }
     }
 
@@ -214,7 +210,7 @@ class Config {
         return [];
       }
 
-      const feedsData = JSON.parse(fs.readFileSync(feedsPath, "utf8"));
+      const feedsData = JSON.parse(fs.readFileSync(feedsPath, 'utf8'));
 
       // Extract watch words from feeds.json
       if (feedsData.watchWords && Array.isArray(feedsData.watchWords)) {
@@ -223,7 +219,7 @@ class Config {
 
       return [];
     } catch (error) {
-      console.error("Error reading watch words from feeds.json:", error.message);
+      console.error('Error reading watch words from feeds.json:', error.message);
       return [];
     }
   }
@@ -233,7 +229,7 @@ class Config {
    * @returns {boolean} Whether to include hour in filename
    */
   getEnableHourlyFiles() {
-    return process.env.ENABLE_HOURLY_FILES === "true";
+    return process.env.ENABLE_HOURLY_FILES === 'true';
   }
 
   /**
@@ -241,7 +237,7 @@ class Config {
    * @returns {boolean} Whether scheduler should run
    */
   isScheduleEnabled() {
-    return process.env.SCHEDULE_ENABLED !== "false";
+    return process.env.SCHEDULE_ENABLED !== 'false';
   }
 
   /**
@@ -265,7 +261,7 @@ class Config {
    * @returns {boolean} Whether to run in daemon mode
    */
   isDaemonMode() {
-    return process.env.DAEMON_MODE === "true";
+    return process.env.DAEMON_MODE === 'true';
   }
 
   /**
@@ -273,7 +269,7 @@ class Config {
    * @returns {boolean} Whether to run immediately on start
    */
   getRunOnStart() {
-    return process.env.RUN_ON_START === "true";
+    return process.env.RUN_ON_START === 'true';
   }
 
   /**
@@ -285,21 +281,21 @@ class Config {
       const tagsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.TAGS_CONFIG_FILE);
 
       if (!fs.existsSync(tagsPath)) {
-        console.warn("tags.json file not found at:", tagsPath);
+        console.warn('tags.json file not found at:', tagsPath);
         return this.getDefaultTags();
       }
 
-      const tagsData = JSON.parse(fs.readFileSync(tagsPath, "utf8"));
+      const tagsData = JSON.parse(fs.readFileSync(tagsPath, 'utf8'));
 
       // Validate tags structure
       if (!tagsData.tags || typeof tagsData.tags !== 'object') {
-        console.warn("Invalid tags.json structure");
+        console.warn('Invalid tags.json structure');
         return this.getDefaultTags();
       }
 
       return tagsData;
     } catch (error) {
-      console.error("Error reading tags.json:", error.message);
+      console.error('Error reading tags.json:', error.message);
       return this.getDefaultTags();
     }
   }
@@ -310,27 +306,27 @@ class Config {
    */
   getDefaultTags() {
     return {
-      "tags": {
-        "ai": {
-          "display": "AI",
-          "description": "Artificial Intelligence and Machine Learning",
-          "subtags": ["llm", "rag", "ml", "cv", "nlp"]
+      tags: {
+        ai: {
+          display: 'AI',
+          description: 'Artificial Intelligence and Machine Learning',
+          subtags: ['llm', 'rag', 'ml', 'cv', 'nlp']
         },
-        "tech": {
-          "display": "Technology",
-          "description": "Technology and Software Development",
-          "subtags": ["web", "mobile", "devops", "security", "programming", "data"]
+        tech: {
+          display: 'Technology',
+          description: 'Technology and Software Development',
+          subtags: ['web', 'mobile', 'devops', 'security', 'programming', 'data']
         },
-        "business": {
-          "display": "Business",
-          "description": "Business and Management",
-          "subtags": ["startup", "marketing", "management"]
+        business: {
+          display: 'Business',
+          description: 'Business and Management',
+          subtags: ['startup', 'marketing', 'management']
         }
       },
-      "config": {
-        "maxTagsPerArticle": LIMITS.DEFAULT_MAX_TAGS_PER_ARTICLE,
-        "defaultTag": DEFAULTS.TAG_NAME,
-        "allowMultipleParentTags": DEFAULTS.ALLOW_MULTIPLE_PARENT_TAGS
+      config: {
+        maxTagsPerArticle: LIMITS.DEFAULT_MAX_TAGS_PER_ARTICLE,
+        defaultTag: DEFAULTS.TAG_NAME,
+        allowMultipleParentTags: DEFAULTS.ALLOW_MULTIPLE_PARENT_TAGS
       }
     };
   }
@@ -362,16 +358,16 @@ class Config {
   getFormattedTagList() {
     const tagsConfig = this.getTags();
     const tags = tagsConfig.tags || {};
-    
+
     return Object.entries(tags)
       .map(([parentTag, tagData]) => {
         const subtags = tagData.subtags || [];
         if (subtags.length > 0) {
-          return `- ${parentTag} (${tagData.description}): ${subtags.join(", ")}`;
+          return `- ${parentTag} (${tagData.description}): ${subtags.join(', ')}`;
         }
         return `- ${parentTag} (${tagData.description})`;
       })
-      .join("\n");
+      .join('\n');
   }
 
   /**
@@ -380,11 +376,13 @@ class Config {
    */
   getTagConfig() {
     const tagsConfig = this.getTags();
-    return tagsConfig.config || {
-      maxTagsPerArticle: LIMITS.DEFAULT_MAX_TAGS_PER_ARTICLE,
-      defaultTag: DEFAULTS.TAG_NAME,
-      allowMultipleParentTags: DEFAULTS.ALLOW_MULTIPLE_PARENT_TAGS
-    };
+    return (
+      tagsConfig.config || {
+        maxTagsPerArticle: LIMITS.DEFAULT_MAX_TAGS_PER_ARTICLE,
+        defaultTag: DEFAULTS.TAG_NAME,
+        allowMultipleParentTags: DEFAULTS.ALLOW_MULTIPLE_PARENT_TAGS
+      }
+    );
   }
 }
 

@@ -3,7 +3,7 @@
  * Consolidates repeated configuration access patterns
  */
 
-const { RETRY, TIMEOUT, DEFAULTS, PATHS } = require('./constants');
+const { RETRY: _RETRY, TIMEOUT, DEFAULTS, PATHS } = require('./constants');
 
 class ConfigHelper {
   /**
@@ -43,33 +43,34 @@ class ConfigHelper {
    */
   static getEnvVar(varName, type = 'string', defaultValue = null, required = false) {
     const value = process.env[varName];
-    
+
     if (!value && required) {
       throw new Error(`Required environment variable ${varName} is not set`);
     }
-    
+
     if (!value) {
       return defaultValue;
     }
 
     switch (type) {
-      case 'number':
+      case 'number': {
         const numValue = parseInt(value, 10);
         if (isNaN(numValue)) {
           throw new Error(`Environment variable ${varName} must be a number, got: ${value}`);
         }
         return numValue;
-        
+      }
+
       case 'boolean':
         return value.toLowerCase() === 'true' || value === '1';
-        
+
       case 'json':
         try {
           return JSON.parse(value);
         } catch (error) {
           throw new Error(`Environment variable ${varName} must be valid JSON: ${error.message}`);
         }
-        
+
       case 'array':
         try {
           const parsed = JSON.parse(value);
@@ -80,7 +81,7 @@ class ConfigHelper {
         } catch (error) {
           throw new Error(`Environment variable ${varName} must be a valid JSON array: ${error.message}`);
         }
-        
+
       default:
         return value;
     }
@@ -139,7 +140,7 @@ class ConfigHelper {
   static getOperationConfig(operationType) {
     const retryConfig = this.getRetryConfig();
     const timeoutConfig = this.getTimeoutConfig();
-    
+
     const configs = {
       feed: {
         timeout: timeoutConfig.httpRequest,

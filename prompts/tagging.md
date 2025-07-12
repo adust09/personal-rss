@@ -1,11 +1,12 @@
 ---
-title: "記事タグ付けプロンプト"
-description: "RSS記事に適切な階層的タグを付けるためのプロンプト"
-version: "1.0"
-variables: ["title", "description", "categories"]
+title: '記事タグ付けプロンプト'
+description: 'RSS記事に適切な階層的タグを付けるためのプロンプト'
+version: '1.0'
+variables: ['title', 'description', 'categories']
 ---
 
 以下の記事のタイトルと内容を分析して、適切な階層的タグを付けてください。
+
 - ある記事に複数の親タグを付けることはできません。
 - 最も適切な親タグを1つ選んでください。
 - ある記事を複数の要約ファイルに記載することはできません
@@ -19,12 +20,14 @@ variables: ["title", "description", "categories"]
 カテゴリ: {{categories}}
 
 記事に最も適切な親タグを1つ選び、必要に応じてサブタグを追加してください。
+
 - 親タグは必須です（例：ai, tech, business など）
 - サブタグは親タグに関連する具体的な内容を表します（例：llm, rag, web, mobile など）
 - タグはカンマ区切りで返してください。タグのみを返し、他の説明は不要です。
 - AI/LLMのように親タグと子タグを合わせて一つのタグにしてはいけません。必ず#AIと#LLMのように二つのタグに分けなさい
 
 例：
+
 - AIの記事の場合：ai, llm
 - ウェブ開発の記事の場合：tech, web
 - 投資の記事の場合：finance, investment

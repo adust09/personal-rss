@@ -8,7 +8,11 @@
     "daemon": "node src/main.js daemon",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage"
+    "test:coverage": "jest --coverage",
+    "lint": "eslint src/ test/",
+    "lint:fix": "eslint src/ test/ --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "keywords": [
     "rss",
@@ -30,7 +34,8 @@
   },
   "devDependencies": {
     "eslint": "^8.0.0",
-    "jest": "^30.0.4"
+    "jest": "^30.0.4",
+    "prettier": "^3.0.0"
   },
   "engines": {
     "node": ">=18.0.0"
