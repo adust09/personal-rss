@@ -227,7 +227,7 @@ class Config {
    * @returns {string} Cron expression for scheduling
    */
   getScheduleCron() {
-    return process.env.SCHEDULE_CRON || "0 */12 * * *"; // Default: every 12 hours
+    return process.env.SCHEDULE_CRON || "0 8,20 * * *"; // Default: every day at 8 AM and 8 PM
   }
 
   /**
