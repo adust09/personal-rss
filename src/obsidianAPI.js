@@ -8,7 +8,7 @@ const https = require("https");
 const path = require("path");
 const Utils = require("./utils");
 const config = require("./config");
-const { TIMEOUT, PATHS, TEXT, LIMITS } = require('./constants');
+const { TIMEOUT, PATHS, TEXT, LIMITS } = require("./constants");
 
 class ObsidianAPI {
   constructor() {
@@ -87,9 +87,9 @@ class ObsidianAPI {
     // Handle hierarchical tags (e.g., tech/ai -> tech directory)
     const tagParts = tag.split("/");
     const baseFileName = tagParts[tagParts.length - 1];
-    
+
     // Create filename with hour if requested
-    const fileName = includeHour 
+    const fileName = includeHour
       ? `${baseFileName}-${Utils.formatDateWithHour(date)}.md`
       : `${baseFileName}.md`;
 
@@ -173,52 +173,55 @@ class ObsidianAPI {
   }
 
   /**
-   * Generate articles list for markdown content
-   * @param {Array<Object>} articles 
-   * @returns {string} Formatted articles list
+   * Generate single article using template
+   * @param {Object} article Single article object
+   * @param {number} index Article index (1-based)
+   * @returns {Promise<string>} Formatted article
    */
-  generateArticlesList(articles) {
-    let articlesList = "";
-    articles.forEach((article, index) => {
-      articlesList += `### ${index + 1}. ${article.title}\n\n`;
+  async generateSingleArticle(article, index) {
+    // Format tags
+    let formattedTags = "";
+    if (article.tags && article.tags.length > 0) {
+      const tags = article.tags.map(tag => {
+        if (tag.includes('/')) {
+          // Split hierarchical tags: tech/ai -> #tech #ai
+          return tag.split('/').map(part => `#${part}`).join(' ');
+        } else {
+          // Single tag: business -> #business
+          return `#${tag}`;
+        }
+      });
+      formattedTags = tags.join(" ");
+    }
 
-      // Article metadata
-      articlesList += `**リンク**: [${article.link}](${article.link})\n\n`;
+    // Load template and replace variables
+    const template = await Utils.loadTemplate("article-item.md");
+    const variables = {
+      index: index,
+      title: article.title,
+      link: article.link,
+      feedTitle: article.feedTitle || null,
+      creator: article.creator || null,
+      pubDate: this.formatDateForDisplay(article.pubDate),
+      description: article.description && article.description.trim() ? article.description : null,
+      tags: formattedTags || null,
+    };
 
-      if (article.feedTitle) {
-        articlesList += `**ソース**: ${article.feedTitle}\n\n`;
-      }
+    return Utils.replaceTemplateVariables(template, variables);
+  }
 
-      if (article.creator) {
-        articlesList += `**著者**: ${article.creator}\n\n`;
-      }
-
-      articlesList += `**公開日**: ${this.formatDateForDisplay(
-        article.pubDate
-      )}\n\n`;
-
-      // Article description/content
-      if (article.description && article.description.trim()) {
-        articlesList += `**概要**:\n${article.description}\n\n`;
-      }
-
-      // Tags
-      if (article.tags && article.tags.length > 0) {
-        const formattedTags = article.tags.map(tag => {
-          if (tag.includes('/')) {
-            // Split hierarchical tags: tech/ai -> #tech #ai
-            return tag.split('/').map(part => `#${part}`).join(' ');
-          } else {
-            // Single tag: business -> #business
-            return `#${tag}`;
-          }
-        });
-        articlesList += `**タグ**: ${formattedTags.join(" ")}\n\n`;
-      }
-
-      articlesList += "---\n\n";
-    });
-    return articlesList;
+  /**
+   * Generate articles list for markdown content
+   * @param {Array<Object>} articles
+   * @returns {Promise<string>} Formatted articles list
+   */
+  async generateArticlesList(articles) {
+    const articlePromises = articles.map((article, index) => 
+      this.generateSingleArticle(article, index + 1)
+    );
+    
+    const formattedArticles = await Promise.all(articlePromises);
+    return formattedArticles.join('\n');
   }
 
   /**
@@ -232,47 +235,8 @@ class ObsidianAPI {
     const { articles, summary, count } = tagData;
     const dateString = Utils.formatDateJapanese(date);
 
-    // Generate articles list
-    let articlesList = "";
-    articles.forEach((article, index) => {
-      articlesList += `### ${index + 1}. ${article.title}\n\n`;
-
-      // Article metadata
-      articlesList += `**リンク**: [${article.link}](${article.link})\n\n`;
-
-      if (article.feedTitle) {
-        articlesList += `**ソース**: ${article.feedTitle}\n\n`;
-      }
-
-      if (article.creator) {
-        articlesList += `**著者**: ${article.creator}\n\n`;
-      }
-
-      articlesList += `**公開日**: ${this.formatDateForDisplay(
-        article.pubDate
-      )}\n\n`;
-
-      // Article description/content
-      if (article.description && article.description.trim()) {
-        articlesList += `**概要**:\n${article.description}\n\n`;
-      }
-
-      // Tags
-      if (article.tags && article.tags.length > 0) {
-        const formattedTags = article.tags.map(tag => {
-          if (tag.includes('/')) {
-            // Split hierarchical tags: tech/ai -> #tech #ai
-            return tag.split('/').map(part => `#${part}`).join(' ');
-          } else {
-            // Single tag: business -> #business
-            return `#${tag}`;
-          }
-        });
-        articlesList += `**タグ**: ${formattedTags.join(" ")}\n\n`;
-      }
-
-      articlesList += `---\n\n`;
-    });
+    // Use existing method to generate articles list
+    const articlesList = await this.generateArticlesList(articles);
 
     // Load template and replace variables
     const template = await Utils.loadTemplate("article.md");
@@ -382,7 +346,10 @@ class ObsidianAPI {
       }件)\n\n`;
 
       if (data.summary) {
-        categoriesList += `${Utils.truncate(data.summary, LIMITS.SUMMARY_PREVIEW_LENGTH)}\n\n`;
+        categoriesList += `${Utils.truncate(
+          data.summary,
+          LIMITS.SUMMARY_PREVIEW_LENGTH
+        )}\n\n`;
       }
     });
 
@@ -438,14 +405,14 @@ class ObsidianAPI {
 
   /**
    * Create keyword summary file
-   * @param {string} keyword 
-   * @param {Object} keywordData 
-   * @param {Date} date 
+   * @param {string} keyword
+   * @param {Object} keywordData
+   * @param {Date} date
    * @returns {Promise<void>}
    */
   async createKeywordSummaryFile(keyword, keywordData, date = new Date()) {
     const { articles, summary, count } = keywordData;
-    
+
     // Create sanitized filename
     const sanitizedKeyword = Utils.sanitizeFilename(keyword);
     const vaultPath = this.getDateVaultPath(date);
@@ -464,7 +431,7 @@ generated: '${timestamp}'
 ---`;
 
     // Create article list
-    const articlesList = this.generateArticlesList(articles);
+    const articlesList = await this.generateArticlesList(articles);
 
     // Create markdown content
     const content = `${frontmatter}
@@ -488,22 +455,28 @@ ${articlesList}
 
     try {
       await this.createObsidianFile(filePath, content);
-      Utils.log('info', `Created keyword summary file: ${filePath} (${count} articles)`);
+      Utils.log(
+        "info",
+        `Created keyword summary file: ${filePath} (${count} articles)`
+      );
     } catch (error) {
-      Utils.log('error', `Failed to create keyword summary file for "${keyword}": ${error.message}`);
+      Utils.log(
+        "error",
+        `Failed to create keyword summary file for "${keyword}": ${error.message}`
+      );
       throw error;
     }
   }
 
   /**
    * Generate output for keyword-based articles
-   * @param {Object} keywordData 
-   * @param {Date} date 
+   * @param {Object} keywordData
+   * @param {Date} date
    * @returns {Promise<void>}
    */
   async generateKeywordOutput(keywordData, date = new Date()) {
     if (!keywordData || Object.keys(keywordData).length === 0) {
-      Utils.log('info', 'No keyword data to generate output');
+      Utils.log("info", "No keyword data to generate output");
       return;
     }
 
@@ -515,7 +488,12 @@ ${articlesList}
       );
     }
 
-    Utils.log('info', `Creating keyword summary files for ${Object.keys(keywordData).length} keywords`);
+    Utils.log(
+      "info",
+      `Creating keyword summary files for ${
+        Object.keys(keywordData).length
+      } keywords`
+    );
 
     // Create keyword summary files
     for (const [keyword, data] of Object.entries(keywordData)) {
@@ -524,7 +502,7 @@ ${articlesList}
 
     const vaultPath = this.getDateVaultPath(date);
     Utils.log(
-      'info',
+      "info",
       `Keyword output generation complete. Files created in: ${vaultPath}/word/`
     );
   }
