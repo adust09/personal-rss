@@ -7,6 +7,7 @@ const RSSFeeder = require('./rssFeeder');
 const Scheduler = require('./scheduler');
 const config = require('./config');
 const Utils = require('./utils');
+const { TIME } = require('./constants');
 
 class Daemon {
   constructor() {
@@ -132,7 +133,7 @@ class Daemon {
           Utils.log('info', `💓 Daemon heartbeat: ${now.toLocaleString()}`);
         }
       }
-    }, 1000);
+    }, TIME.DAEMON_HEARTBEAT_INTERVAL);
   }
 
   /**

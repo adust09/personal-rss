@@ -8,12 +8,13 @@ const https = require("https");
 const path = require("path");
 const Utils = require("./utils");
 const config = require("./config");
+const { TIMEOUT, PATHS, TEXT, LIMITS } = require('./constants');
 
 class ObsidianAPI {
   constructor() {
     this.apiUrl = config.getObsidianApiUrl();
     this.apiKey = config.getObsidianApiKey();
-    this.baseVaultPath = "RSS"; // Base path in Obsidian vault
+    this.baseVaultPath = PATHS.OBSIDIAN_BASE_VAULT_PATH; // Base path in Obsidian vault
 
     // Configure HTTPS agent to handle self-signed certificates
     this.httpsAgent = new https.Agent({
@@ -49,7 +50,7 @@ class ObsidianAPI {
           Authorization: `Bearer ${this.apiKey}`,
         },
         httpsAgent: this.httpsAgent,
-        timeout: 5000,
+        timeout: TIMEOUT.OBSIDIAN_CONNECTION_TEST,
       });
 
       Utils.log("info", "Successfully connected to Obsidian Local REST API");
@@ -144,7 +145,7 @@ class ObsidianAPI {
               "Content-Type": "text/markdown",
             },
             httpsAgent: this.httpsAgent,
-            timeout: 10000,
+            timeout: TIMEOUT.OBSIDIAN_API_REQUEST,
           });
         },
         config.getMaxRetries(),
@@ -295,7 +296,7 @@ class ObsidianAPI {
    * @returns {string}
    */
   formatDateForDisplay(date) {
-    if (!date) return "不明";
+    if (!date) return TEXT.UNKNOWN_DATE_JP;
 
     try {
       return new Date(date).toLocaleString("ja-JP", {
@@ -346,7 +347,7 @@ class ObsidianAPI {
    */
   async createIndexFile(processedData, date = new Date()) {
     const basePath = this.getDateVaultPath(date);
-    const indexPath = `${basePath}/index.md`;
+    const indexPath = `${basePath}/${PATHS.INDEX_FILE_NAME}`;
 
     const dateString = Utils.formatDateJapanese(date);
     const totalArticles = Object.values(processedData).reduce(
@@ -381,7 +382,7 @@ class ObsidianAPI {
       }件)\n\n`;
 
       if (data.summary) {
-        categoriesList += `${Utils.truncate(data.summary, 150)}\n\n`;
+        categoriesList += `${Utils.truncate(data.summary, LIMITS.SUMMARY_PREVIEW_LENGTH)}\n\n`;
       }
     });
 
@@ -448,7 +449,7 @@ class ObsidianAPI {
     // Create sanitized filename
     const sanitizedKeyword = Utils.sanitizeFilename(keyword);
     const vaultPath = this.getDateVaultPath(date);
-    const filePath = `${vaultPath}/word/${sanitizedKeyword}.md`;
+    const filePath = `${vaultPath}/${PATHS.KEYWORD_DIRECTORY_NAME}/${sanitizedKeyword}.md`;
 
     const dateString = Utils.formatDate(date);
     const timestamp = new Date().toISOString();

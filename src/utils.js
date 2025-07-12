@@ -6,6 +6,7 @@ const fs = require('fs').promises;
 const path = require('path');
 const { format, parseISO } = require('date-fns');
 const config = require('./config');
+const { LIMITS, INDICES, TEXT } = require('./constants');
 
 class Utils {
   /**
@@ -131,8 +132,8 @@ class Utils {
    */
   static sanitizeFilename(filename) {
     return filename
-      .replace(/[<>:"/\\|?*]/g, '')
-      .replace(/\s+/g, '-')
+      .replace(TEXT.INVALID_FILENAME_CHARS_REGEX, '')
+      .replace(TEXT.WHITESPACE_REGEX, '-')
       .toLowerCase();
   }
 
@@ -169,9 +170,9 @@ class Utils {
    * @param {number} maxLength 
    * @returns {string}
    */
-  static truncate(text, maxLength = 100) {
+  static truncate(text, maxLength = LIMITS.DEFAULT_TEXT_TRUNCATE_LENGTH) {
     if (text.length <= maxLength) return text;
-    return text.substring(0, maxLength - 3) + '...';
+    return text.substring(0, maxLength - INDICES.TRUNCATE_ELLIPSIS_LENGTH) + '...';
   }
 
   /**
@@ -180,7 +181,7 @@ class Utils {
    * @returns {string}
    */
   static stripHtml(html) {
-    return html.replace(/<[^>]*>/g, '').trim();
+    return html.replace(TEXT.HTML_TAGS_REGEX, '').trim();
   }
 
   /**

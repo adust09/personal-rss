@@ -4,6 +4,7 @@
 
 const fs = require("fs");
 const path = require("path");
+const { DEFAULTS, PATHS, RETRY, CRON, LIMITS } = require('./constants');
 
 // Load environment variables from .env file
 require("dotenv").config();
@@ -33,7 +34,7 @@ class Config {
   }
 
   getObsidianApiUrl() {
-    return process.env.OBSIDIAN_API_URL || "https://127.0.0.1:27124/";
+    return process.env.OBSIDIAN_API_URL || DEFAULTS.OBSIDIAN_API_URL;
   }
 
   getRssFeeds() {
@@ -49,7 +50,7 @@ class Config {
 
     // Read from feeds.json file
     try {
-      const feedsPath = path.join(process.cwd(), "config", "feeds.json");
+      const feedsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.FEEDS_CONFIG_FILE);
 
       if (!fs.existsSync(feedsPath)) {
         console.warn("feeds.json file not found at:", feedsPath);
@@ -79,27 +80,27 @@ class Config {
   }
 
   getOutputDirectory() {
-    return process.env.OUTPUT_DIRECTORY || "./output";
+    return process.env.OUTPUT_DIRECTORY || PATHS.DEFAULT_OUTPUT_DIRECTORY;
   }
 
   getTimezone() {
-    return process.env.TIMEZONE || "Asia/Tokyo";
+    return process.env.TIMEZONE || DEFAULTS.TIMEZONE;
   }
 
   getMaxRetries() {
-    return parseInt(process.env.MAX_RETRIES || "3", 10);
+    return parseInt(process.env.MAX_RETRIES || RETRY.DEFAULT_MAX_RETRIES.toString(), 10);
   }
 
   getRetryDelay() {
-    return parseInt(process.env.RETRY_DELAY || "1000", 10);
+    return parseInt(process.env.RETRY_DELAY || RETRY.DEFAULT_RETRY_DELAY.toString(), 10);
   }
 
   getGeminiRequestDelay() {
-    return parseInt(process.env.GEMINI_REQUEST_DELAY || "1000", 10);
+    return parseInt(process.env.GEMINI_REQUEST_DELAY || RETRY.DEFAULT_GEMINI_REQUEST_DELAY.toString(), 10);
   }
 
   getGeminiModel() {
-    return process.env.GEMINI_MODEL || "gemini-2.5-flash";
+    return process.env.GEMINI_MODEL || DEFAULTS.GEMINI_MODEL;
   }
 
   isDebugMode() {
@@ -111,59 +112,80 @@ class Config {
   }
 
   getTemplatesDirectory() {
-    return process.env.TEMPLATES_DIRECTORY || "./templates";
+    return process.env.TEMPLATES_DIRECTORY || PATHS.DEFAULT_TEMPLATES_DIRECTORY;
   }
 
   getPromptsDirectory() {
-    return process.env.PROMPTS_DIRECTORY || "./prompts";
+    return process.env.PROMPTS_DIRECTORY || PATHS.DEFAULT_PROMPTS_DIRECTORY;
   }
 
   getRssFeedsWithTags() {
-    // First try environment variable (for backward compatibility)
-    const feedsString = process.env.RSS_FEEDS;
-    if (feedsString) {
-      try {
-        const urls = JSON.parse(feedsString);
-        // Environment variable only provides URLs, default to 'tech' parentTag
-        return urls.map(url => ({ url, parentTag: 'tech' }));
-      } catch (error) {
-        console.error("Error parsing RSS_FEEDS environment variable:", error);
-      }
+    // Try environment variable first
+    const envFeeds = this.getFeedsFromEnvironment();
+    if (envFeeds) {
+      return envFeeds;
     }
+    
+    // Fall back to file-based configuration
+    return this.getFeedsFromFile();
+  }
 
-    // Read from feeds.json file
+  getFeedsFromEnvironment() {
+    const feedsString = process.env.RSS_FEEDS;
+    if (!feedsString) {
+      return null;
+    }
+    
     try {
-      const feedsPath = path.join(process.cwd(), "config", "feeds.json");
+      const urls = JSON.parse(feedsString);
+      return urls.map(url => ({ url, parentTag: DEFAULTS.PARENT_TAG }));
+    } catch (error) {
+      console.error("Error parsing RSS_FEEDS environment variable:", error);
+      return null;
+    }
+  }
 
-      if (!fs.existsSync(feedsPath)) {
-        console.warn("feeds.json file not found at:", feedsPath);
-        return [];
-      }
-
-      const feedsData = JSON.parse(fs.readFileSync(feedsPath, "utf8"));
-
-      // Extract enabled feeds with parentTag
-      if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
-        return feedsData.feeds
-          .filter((feed) => feed.enabled === true)
-          .map((feed) => ({
-            url: feed.url,
-            parentTag: feed.category || 'tech',
-            name: feed.name
-          }));
-      }
-
-      // Fallback: if feeds.json has different structure
-      if (Array.isArray(feedsData)) {
-        return feedsData.map(url => ({ url, parentTag: 'tech' }));
-      }
-
-      console.warn("Invalid feeds.json structure");
+  getFeedsFromFile() {
+    const feedsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.FEEDS_CONFIG_FILE);
+    
+    if (!fs.existsSync(feedsPath)) {
+      console.warn("feeds.json file not found at:", feedsPath);
       return [];
+    }
+    
+    try {
+      const feedsData = this.readFeedsFile(feedsPath);
+      return this.processFeedsData(feedsData);
     } catch (error) {
       console.error("Error reading feeds.json:", error.message);
       return [];
     }
+  }
+
+  readFeedsFile(feedsPath) {
+    const rawData = fs.readFileSync(feedsPath, "utf8");
+    return JSON.parse(rawData);
+  }
+
+  processFeedsData(feedsData) {
+    // Handle structured feeds format
+    if (feedsData.feeds && Array.isArray(feedsData.feeds)) {
+      return feedsData.feeds
+        .filter((feed) => feed.enabled === true)
+        .map((feed) => ({
+          url: feed.url,
+          parentTag: feed.category || DEFAULTS.PARENT_TAG,
+          name: feed.name
+        }));
+    }
+    
+    // Handle simple array format
+    if (Array.isArray(feedsData)) {
+      return feedsData.map(url => ({ url, parentTag: DEFAULTS.PARENT_TAG }));
+    }
+    
+    console.warn("Invalid feeds.json structure");
+    return [];
   }
 
   /**
@@ -186,7 +208,7 @@ class Config {
 
     // Read from feeds.json file
     try {
-      const feedsPath = path.join(process.cwd(), "config", "feeds.json");
+      const feedsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.FEEDS_CONFIG_FILE);
 
       if (!fs.existsSync(feedsPath)) {
         return [];
@@ -227,7 +249,7 @@ class Config {
    * @returns {string} Cron expression for scheduling
    */
   getScheduleCron() {
-    return process.env.SCHEDULE_CRON || "0 8,20 * * *"; // Default: every day at 8 AM and 8 PM
+    return process.env.SCHEDULE_CRON || CRON.DEFAULT_SCHEDULE; // Default: every day at 8 AM and 8 PM
   }
 
   /**
@@ -260,7 +282,7 @@ class Config {
    */
   getTags() {
     try {
-      const tagsPath = path.join(process.cwd(), "config", "tags.json");
+      const tagsPath = path.join(process.cwd(), PATHS.CONFIG_DIRECTORY, PATHS.TAGS_CONFIG_FILE);
 
       if (!fs.existsSync(tagsPath)) {
         console.warn("tags.json file not found at:", tagsPath);
@@ -306,9 +328,9 @@ class Config {
         }
       },
       "config": {
-        "maxTagsPerArticle": 3,
-        "defaultTag": "uncategorized",
-        "allowMultipleParentTags": false
+        "maxTagsPerArticle": LIMITS.DEFAULT_MAX_TAGS_PER_ARTICLE,
+        "defaultTag": DEFAULTS.TAG_NAME,
+        "allowMultipleParentTags": DEFAULTS.ALLOW_MULTIPLE_PARENT_TAGS
       }
     };
   }
@@ -359,9 +381,9 @@ class Config {
   getTagConfig() {
     const tagsConfig = this.getTags();
     return tagsConfig.config || {
-      maxTagsPerArticle: 3,
-      defaultTag: "uncategorized",
-      allowMultipleParentTags: false
+      maxTagsPerArticle: LIMITS.DEFAULT_MAX_TAGS_PER_ARTICLE,
+      defaultTag: DEFAULTS.TAG_NAME,
+      allowMultipleParentTags: DEFAULTS.ALLOW_MULTIPLE_PARENT_TAGS
     };
   }
 }

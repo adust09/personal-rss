@@ -7,12 +7,13 @@ const Parser = require('rss-parser');
 const axios = require('axios');
 const Utils = require('./utils');
 const config = require('./config');
+const { TIMEOUT, HTTP, DEFAULTS, TIME } = require('./constants');
 
 class FeedFetcher {
   constructor() {
     this.parser = new Parser({
-      timeout: 10000,
-      maxRedirects: 3,
+      timeout: TIMEOUT.RSS_PARSER,
+      maxRedirects: HTTP.MAX_REDIRECTS,
       customFields: {
         item: [
           ['dc:creator', 'creator'],
@@ -34,9 +35,9 @@ class FeedFetcher {
       Utils.log('info', `Fetching feed: ${feedUrl}`);
       
       const response = await axios.get(feedUrl, {
-        timeout: 10000,
+        timeout: TIMEOUT.HTTP_REQUEST,
         headers: {
-          'User-Agent': 'Personal RSS Feeder Bot/1.0'
+          'User-Agent': HTTP.USER_AGENT
         }
       });
 
@@ -108,7 +109,7 @@ class FeedFetcher {
    */
   normalizeItem(item) {
     return {
-      title: item.title || 'Untitled',
+      title: item.title || DEFAULTS.ARTICLE_TITLE,
       link: item.link || item.guid || '',
       description: Utils.stripHtml(item.description || item.contentSnippet || ''),
       content: item.contentEncoded || item.content || '',
@@ -126,7 +127,7 @@ class FeedFetcher {
    */
   filterTodayArticles(articles) {
     const today = new Date();
-    const oneDayAgo = new Date(today.getTime() - 1 * 24 * 60 * 60 * 1000);
+    const oneDayAgo = new Date(today.getTime() - TIME.ONE_DAY_MILLISECONDS);
     const oneDayAgoStart = new Date(oneDayAgo.getFullYear(), oneDayAgo.getMonth(), oneDayAgo.getDate());
 
     const recentArticles = articles.filter(article => {
