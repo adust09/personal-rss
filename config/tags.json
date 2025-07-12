@@ -8,7 +8,7 @@
     "tech": {
       "display": "Technology",
       "description": "Technology and Software Development",
-      "subtags": ["web", "mobile", "devops", "security", "programming", "data", "hardware"]
+      "subtags": ["web", "mobile", "devops", "programming", "data", "hardware"]
     },
     "business": {
       "display": "Business",
@@ -34,6 +34,11 @@
       "display": "Finance",
       "description": "Finance, Investment, and Cryptocurrency",
       "subtags": ["investment", "crypto", "stocks", "banking", "economy"]
+    },
+    "security": {
+      "display": "Security",
+      "description": "Cybersecurity, Information Security, and Digital Defense",
+      "subtags": ["news", "analysis", "incidents", "enterprise", "vulnerability", "privacy", "compliance"]
     }
   },
   "config": {
