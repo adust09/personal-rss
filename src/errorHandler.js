@@ -19,17 +19,17 @@ class ErrorHandler {
     const contextStr = Object.entries(context)
       .map(([key, value]) => `${key}=${value}`)
       .join(', ');
-    
+
     const retryInfo = attempt > 0 ? ` (attempt ${attempt})` : '';
     const message = `[${timestamp}] [${severity.toUpperCase()}] ${operation}${retryInfo}: ${error.message}`;
-    
+
     if (contextStr) {
       const fullMessage = `${message} | Context: ${contextStr}`;
       this.logByLevel(severity, fullMessage);
     } else {
       this.logByLevel(severity, message);
     }
-    
+
     // Log stack trace in debug mode
     if (config.isDebugMode() && severity === 'error') {
       console.error('Stack trace:', error.stack);
@@ -48,16 +48,14 @@ class ErrorHandler {
     const contextStr = Object.entries(context)
       .map(([key, value]) => `${key}=${value}`)
       .join(', ');
-    
-    const fullMessage = contextStr 
-      ? `${operation}: ${message} | Context: ${contextStr}`
-      : `${operation}: ${message}`;
-    
+
+    const fullMessage = contextStr ? `${operation}: ${message} | Context: ${contextStr}` : `${operation}: ${message}`;
+
     const error = new Error(fullMessage);
     error.operation = operation;
     error.context = context;
     error.originalError = originalError;
-    
+
     return error;
   }
 
@@ -98,11 +96,11 @@ class ErrorHandler {
     const contextStr = Object.entries(context)
       .map(([key, value]) => `${key}=${value}`)
       .join(', ');
-    
-    const fullMessage = contextStr 
+
+    const fullMessage = contextStr
       ? `[${timestamp}] [INFO] ${operation}: ${message} | Context: ${contextStr}`
       : `[${timestamp}] [INFO] ${operation}: ${message}`;
-    
+
     if (config.isDebugMode()) {
       console.log(fullMessage);
     }
@@ -163,28 +161,28 @@ ErrorHandler.OPERATIONS = {
   FEED_FETCH: 'feed_fetch',
   FEED_PARSE: 'feed_parse',
   FEED_FILTER: 'feed_filter',
-  
+
   // LLM operations
   GEMINI_REQUEST: 'gemini_request',
   ARTICLE_TAGGING: 'article_tagging',
   SUMMARY_GENERATION: 'summary_generation',
   KEYWORD_SUMMARY: 'keyword_summary',
-  
+
   // File operations
   FILE_READ: 'file_read',
   FILE_WRITE: 'file_write',
   TEMPLATE_LOAD: 'template_load',
-  
+
   // Obsidian operations
   OBSIDIAN_CONNECTION: 'obsidian_connection',
   OBSIDIAN_CREATE_FILE: 'obsidian_create_file',
   OBSIDIAN_API_REQUEST: 'obsidian_api_request',
-  
+
   // Configuration operations
   CONFIG_LOAD: 'config_load',
   CONFIG_PARSE: 'config_parse',
   ENV_VAR_READ: 'env_var_read',
-  
+
   // Daemon operations
   DAEMON_START: 'daemon_start',
   SCHEDULER_INIT: 'scheduler_init',

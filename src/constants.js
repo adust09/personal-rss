@@ -38,30 +38,30 @@ const LIMITS = {
 
 // CRON PATTERNS
 const CRON = {
-  DEFAULT_SCHEDULE: "0 8,20 * * *",
+  DEFAULT_SCHEDULE: '0 8,20 * * *',
   TWELVE_HOUR_INTERVAL: '0 */12 * * *'
 };
 
 // FILE PATHS AND DIRECTORIES
 const PATHS = {
-  CONFIG_DIRECTORY: "config",
-  FEEDS_CONFIG_FILE: "feeds.json",
-  TAGS_CONFIG_FILE: "tags.json",
-  DEFAULT_OUTPUT_DIRECTORY: "./output",
-  DEFAULT_TEMPLATES_DIRECTORY: "./templates",
-  DEFAULT_PROMPTS_DIRECTORY: "./prompts",
-  OBSIDIAN_BASE_VAULT_PATH: "RSS",
-  INDEX_FILE_NAME: "index.md",
-  KEYWORD_DIRECTORY_NAME: "word"
+  CONFIG_DIRECTORY: 'config',
+  FEEDS_CONFIG_FILE: 'feeds.json',
+  TAGS_CONFIG_FILE: 'tags.json',
+  DEFAULT_OUTPUT_DIRECTORY: './output',
+  DEFAULT_TEMPLATES_DIRECTORY: './templates',
+  DEFAULT_PROMPTS_DIRECTORY: './prompts',
+  OBSIDIAN_BASE_VAULT_PATH: 'RSS',
+  INDEX_FILE_NAME: 'index.md',
+  KEYWORD_DIRECTORY_NAME: 'word'
 };
 
 // DEFAULT VALUES
 const DEFAULTS = {
-  TIMEZONE: "Asia/Tokyo",
-  GEMINI_MODEL: "gemini-2.5-flash",
-  OBSIDIAN_API_URL: "https://127.0.0.1:27124/",
+  TIMEZONE: 'Asia/Tokyo',
+  GEMINI_MODEL: 'gemini-2.5-flash',
+  OBSIDIAN_API_URL: 'https://127.0.0.1:27124/',
   PARENT_TAG: 'tech',
-  TAG_NAME: "uncategorized",
+  TAG_NAME: 'uncategorized',
   ARTICLE_TITLE: 'Untitled',
   ALLOW_MULTIPLE_PARENT_TAGS: false
 };
@@ -84,7 +84,7 @@ const INDICES = {
 
 // TEXT AND REGEX PATTERNS
 const TEXT = {
-  UNKNOWN_DATE_JP: "不明",
+  UNKNOWN_DATE_JP: '不明',
   INVALID_FILENAME_CHARS_REGEX: /[<>:"/\\|?*]/g,
   WHITESPACE_REGEX: /\s+/g,
   HTML_TAGS_REGEX: /<[^>]*>/g

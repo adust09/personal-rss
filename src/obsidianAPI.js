@@ -3,12 +3,12 @@
  * Creates markdown files in Obsidian Vault via Local REST API
  */
 
-const axios = require("axios");
-const https = require("https");
-const path = require("path");
-const Utils = require("./utils");
-const config = require("./config");
-const { TIMEOUT, PATHS, TEXT, LIMITS } = require("./constants");
+const axios = require('axios');
+const https = require('https');
+const _path = require('path');
+const Utils = require('./utils');
+const config = require('./config');
+const { TIMEOUT, PATHS, TEXT, LIMITS } = require('./constants');
 
 class ObsidianAPI {
   constructor() {
@@ -18,14 +18,12 @@ class ObsidianAPI {
 
     // Configure HTTPS agent to handle self-signed certificates
     this.httpsAgent = new https.Agent({
-      rejectUnauthorized: !config.getIgnoreSSLErrors(),
+      rejectUnauthorized: !config.getIgnoreSSLErrors()
     });
 
     // Validate configuration
     if (!this.apiKey) {
-      throw new Error(
-        "OBSIDIAN_API_KEY environment variable is required for Obsidian integration"
-      );
+      throw new Error('OBSIDIAN_API_KEY environment variable is required for Obsidian integration');
     }
   }
 
@@ -47,21 +45,18 @@ class ObsidianAPI {
     try {
       const response = await axios.get(`${this.apiUrl}/vault/`, {
         headers: {
-          Authorization: `Bearer ${this.apiKey}`,
+          Authorization: `Bearer ${this.apiKey}`
         },
         httpsAgent: this.httpsAgent,
-        timeout: TIMEOUT.OBSIDIAN_CONNECTION_TEST,
+        timeout: TIMEOUT.OBSIDIAN_CONNECTION_TEST
       });
 
-      Utils.log("info", "Successfully connected to Obsidian Local REST API");
+      Utils.log('info', 'Successfully connected to Obsidian Local REST API');
       return response.status === 200;
     } catch (error) {
-      Utils.log("error", `Failed to connect to Obsidian API: ${error.message}`);
-      if (error.code === "ECONNREFUSED") {
-        Utils.log(
-          "error",
-          "Make sure Obsidian is running with Local REST API plugin enabled"
-        );
+      Utils.log('error', `Failed to connect to Obsidian API: ${error.message}`);
+      if (error.code === 'ECONNREFUSED') {
+        Utils.log('error', 'Make sure Obsidian is running with Local REST API plugin enabled');
       }
       return false;
     }
@@ -78,20 +73,18 @@ class ObsidianAPI {
     const { articles, summary, count } = tagData;
 
     if (!articles || articles.length === 0) {
-      Utils.log("warn", `Skipping empty tag: ${tag}`);
+      Utils.log('warn', `Skipping empty tag: ${tag}`);
       return;
     }
 
     const basePath = this.getDateVaultPath(date);
 
     // Handle hierarchical tags (e.g., tech/ai -> tech directory)
-    const tagParts = tag.split("/");
+    const tagParts = tag.split('/');
     const baseFileName = tagParts[tagParts.length - 1];
 
     // Create filename with hour if requested
-    const fileName = includeHour
-      ? `${baseFileName}-${Utils.formatDateWithHour(date)}.md`
-      : `${baseFileName}.md`;
+    const fileName = includeHour ? `${baseFileName}-${Utils.formatDateWithHour(date)}.md` : `${baseFileName}.md`;
 
     let vaultPath;
     if (tagParts.length > 1) {
@@ -107,7 +100,7 @@ class ObsidianAPI {
       tag: tag,
       count: count,
       tags: [tag],
-      generated: new Date().toISOString(),
+      generated: new Date().toISOString()
     };
 
     if (includeHour) {
@@ -124,10 +117,7 @@ class ObsidianAPI {
     // Create file via Obsidian API
     await this.createObsidianFile(vaultPath, fullContent);
 
-    Utils.log(
-      "info",
-      `Created Obsidian file: ${vaultPath} (${count} articles)`
-    );
+    Utils.log('info', `Created Obsidian file: ${vaultPath} (${count} articles)`);
   }
 
   /**
@@ -142,10 +132,10 @@ class ObsidianAPI {
           return await axios.put(`${this.apiUrl}/vault/${vaultPath}`, content, {
             headers: {
               Authorization: `Bearer ${this.apiKey}`,
-              "Content-Type": "text/markdown",
+              'Content-Type': 'text/markdown'
             },
             httpsAgent: this.httpsAgent,
-            timeout: TIMEOUT.OBSIDIAN_API_REQUEST,
+            timeout: TIMEOUT.OBSIDIAN_API_REQUEST
           });
         },
         config.getMaxRetries(),
@@ -154,19 +144,12 @@ class ObsidianAPI {
       );
 
       if (response.status === 200 || response.status === 201) {
-        Utils.log(
-          "info",
-          `Successfully created file in Obsidian: ${vaultPath}`
-        );
+        Utils.log('info', `Successfully created file in Obsidian: ${vaultPath}`);
       }
     } catch (error) {
-      Utils.log(
-        "error",
-        `Failed to create Obsidian file ${vaultPath}:`,
-        error.message
-      );
+      Utils.log('error', `Failed to create Obsidian file ${vaultPath}:`, error.message);
       if (error.response) {
-        Utils.log("error", `API Response:`, error.response.data);
+        Utils.log('error', 'API Response:', error.response.data);
       }
       throw error;
     }
@@ -180,25 +163,25 @@ class ObsidianAPI {
    */
   async generateSingleArticle(article, index) {
     // Format tags
-    let formattedTags = "";
+    let formattedTags = '';
     if (article.tags && article.tags.length > 0) {
-      const tags = article.tags.map((tag) => {
-        if (tag.includes("/")) {
+      const tags = article.tags.map(tag => {
+        if (tag.includes('/')) {
           // Split hierarchical tags: tech/ai -> #tech #ai
           return tag
-            .split("/")
-            .map((part) => `#${part}`)
-            .join(" ");
+            .split('/')
+            .map(part => `#${part}`)
+            .join(' ');
         } else {
           // Single tag: business -> #business
           return `#${tag}`;
         }
       });
-      formattedTags = tags.join(" ");
+      formattedTags = tags.join(' ');
     }
 
     // Load template and replace variables
-    const template = await Utils.loadTemplate("article-item.md");
+    const template = await Utils.loadTemplate('article-item.md');
     const variables = {
       index: index,
       title: article.title,
@@ -206,11 +189,8 @@ class ObsidianAPI {
       feedTitle: article.feedTitle || null,
       creator: article.creator || null,
       pubDate: this.formatDateForDisplay(article.pubDate),
-      description:
-        article.description && article.description.trim()
-          ? article.description
-          : null,
-      tags: formattedTags || null,
+      description: article.description && article.description.trim() ? article.description : null,
+      tags: formattedTags || null
     };
 
     return Utils.replaceTemplateVariables(template, variables);
@@ -222,12 +202,10 @@ class ObsidianAPI {
    * @returns {Promise<string>} Formatted articles list
    */
   async generateArticlesList(articles) {
-    const articlePromises = articles.map((article, index) =>
-      this.generateSingleArticle(article, index + 1)
-    );
+    const articlePromises = articles.map((article, index) => this.generateSingleArticle(article, index + 1));
 
     const formattedArticles = await Promise.all(articlePromises);
-    return formattedArticles.join("\n");
+    return formattedArticles.join('\n');
   }
 
   /**
@@ -245,16 +223,16 @@ class ObsidianAPI {
     const articlesList = await this.generateArticlesList(articles);
 
     // Load template and replace variables
-    const template = await Utils.loadTemplate("article.md");
+    const template = await Utils.loadTemplate('article.md');
     const variables = {
       tag: tag.toUpperCase(),
       dateString: dateString,
       summary: summary,
       count: count,
       articlesList: articlesList,
-      generatedTime: new Date().toLocaleString("ja-JP", {
-        timeZone: "Asia/Tokyo",
-      }),
+      generatedTime: new Date().toLocaleString('ja-JP', {
+        timeZone: 'Asia/Tokyo'
+      })
     };
 
     return Utils.replaceTemplateVariables(template, variables);
@@ -269,13 +247,13 @@ class ObsidianAPI {
     if (!date) return TEXT.UNKNOWN_DATE_JP;
 
     try {
-      return new Date(date).toLocaleString("ja-JP", {
-        timeZone: "Asia/Tokyo",
-        year: "numeric",
-        month: "2-digit",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
+      return new Date(date).toLocaleString('ja-JP', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit'
       });
     } catch (error) {
       return date.toString();
@@ -290,16 +268,11 @@ class ObsidianAPI {
    */
   async createAllFiles(processedData, date = new Date(), includeHour = false) {
     if (!processedData || Object.keys(processedData).length === 0) {
-      Utils.log("warn", "No processed data to create files");
+      Utils.log('warn', 'No processed data to create files');
       return;
     }
 
-    Utils.log(
-      "info",
-      `Creating markdown files for ${
-        Object.keys(processedData).length
-      } categories`
-    );
+    Utils.log('info', `Creating markdown files for ${Object.keys(processedData).length} categories`);
 
     const promises = Object.entries(processedData).map(([tag, tagData]) =>
       this.createTagFile(tag, tagData, date, includeHour)
@@ -307,7 +280,7 @@ class ObsidianAPI {
 
     await Promise.allSettled(promises);
 
-    Utils.log("info", "All markdown files created successfully");
+    Utils.log('info', 'All markdown files created successfully');
   }
 
   /**
@@ -320,55 +293,43 @@ class ObsidianAPI {
     const indexPath = `${basePath}/${PATHS.INDEX_FILE_NAME}`;
 
     const dateString = Utils.formatDateJapanese(date);
-    const totalArticles = Object.values(processedData).reduce(
-      (sum, data) => sum + data.count,
-      0
-    );
+    const totalArticles = Object.values(processedData).reduce((sum, data) => sum + data.count, 0);
 
     const frontmatter = Utils.generateYamlFrontmatter({
       date: Utils.formatDate(date),
-      type: "index",
+      type: 'index',
       total_articles: totalArticles,
       categories: Object.keys(processedData).length,
-      generated: new Date().toISOString(),
+      generated: new Date().toISOString()
     });
 
     // Generate categories list
-    let categoriesList = "";
+    let categoriesList = '';
 
     // Sort categories by article count
-    const sortedCategories = Object.entries(processedData).sort(
-      ([, a], [, b]) => b.count - a.count
-    );
+    const sortedCategories = Object.entries(processedData).sort(([, a], [, b]) => b.count - a.count);
 
     sortedCategories.forEach(([tag, data]) => {
-      const fileName = tag.split("/").pop();
-      const filePath = tag.includes("/")
-        ? `${tag.split("/")[0]}/${fileName}.md`
-        : `${fileName}.md`;
+      const fileName = tag.split('/').pop();
+      const filePath = tag.includes('/') ? `${tag.split('/')[0]}/${fileName}.md` : `${fileName}.md`;
 
-      categoriesList += `### [${tag.toUpperCase()}](${filePath}) (${
-        data.count
-      }件)\n\n`;
+      categoriesList += `### [${tag.toUpperCase()}](${filePath}) (${data.count}件)\n\n`;
 
       if (data.summary) {
-        categoriesList += `${Utils.truncate(
-          data.summary,
-          LIMITS.SUMMARY_PREVIEW_LENGTH
-        )}\n\n`;
+        categoriesList += `${Utils.truncate(data.summary, LIMITS.SUMMARY_PREVIEW_LENGTH)}\n\n`;
       }
     });
 
     // Load template and replace variables
-    const template = await Utils.loadTemplate("index.md");
+    const template = await Utils.loadTemplate('index.md');
     const variables = {
       dateString: dateString,
       totalArticles: totalArticles,
       categoriesCount: Object.keys(processedData).length,
       categoriesList: categoriesList,
-      generatedTime: new Date().toLocaleString("ja-JP", {
-        timeZone: "Asia/Tokyo",
-      }),
+      generatedTime: new Date().toLocaleString('ja-JP', {
+        timeZone: 'Asia/Tokyo'
+      })
     };
 
     const content = Utils.replaceTemplateVariables(template, variables);
@@ -376,7 +337,7 @@ class ObsidianAPI {
 
     await this.createObsidianFile(indexPath, fullContent);
 
-    Utils.log("info", `Created index file: ${indexPath}`);
+    Utils.log('info', `Created index file: ${indexPath}`);
   }
 
   /**
@@ -387,7 +348,7 @@ class ObsidianAPI {
    */
   async generateOutput(processedData, date = new Date(), includeHour = false) {
     if (!processedData || Object.keys(processedData).length === 0) {
-      Utils.log("warn", "No data to generate output");
+      Utils.log('warn', 'No data to generate output');
       return;
     }
 
@@ -395,7 +356,7 @@ class ObsidianAPI {
     const connected = await this.testConnection();
     if (!connected) {
       throw new Error(
-        "Cannot connect to Obsidian Local REST API. Please ensure Obsidian is running with the plugin enabled."
+        'Cannot connect to Obsidian Local REST API. Please ensure Obsidian is running with the plugin enabled.'
       );
     }
 
@@ -403,10 +364,7 @@ class ObsidianAPI {
     await this.createIndexFile(processedData, date);
 
     const vaultPath = this.getDateVaultPath(date);
-    Utils.log(
-      "info",
-      `Output generation complete. Files created in Obsidian vault: ${vaultPath}`
-    );
+    Utils.log('info', `Output generation complete. Files created in Obsidian vault: ${vaultPath}`);
   }
 
   /**
@@ -461,15 +419,9 @@ ${articlesList}
 
     try {
       await this.createObsidianFile(filePath, content);
-      Utils.log(
-        "info",
-        `Created keyword summary file: ${filePath} (${count} articles)`
-      );
+      Utils.log('info', `Created keyword summary file: ${filePath} (${count} articles)`);
     } catch (error) {
-      Utils.log(
-        "error",
-        `Failed to create keyword summary file for "${keyword}": ${error.message}`
-      );
+      Utils.log('error', `Failed to create keyword summary file for "${keyword}": ${error.message}`);
       throw error;
     }
   }
@@ -482,7 +434,7 @@ ${articlesList}
    */
   async generateKeywordOutput(keywordData, date = new Date()) {
     if (!keywordData || Object.keys(keywordData).length === 0) {
-      Utils.log("info", "No keyword data to generate output");
+      Utils.log('info', 'No keyword data to generate output');
       return;
     }
 
@@ -490,16 +442,11 @@ ${articlesList}
     const connected = await this.testConnection();
     if (!connected) {
       throw new Error(
-        "Cannot connect to Obsidian Local REST API. Please ensure Obsidian is running with the plugin enabled."
+        'Cannot connect to Obsidian Local REST API. Please ensure Obsidian is running with the plugin enabled.'
       );
     }
 
-    Utils.log(
-      "info",
-      `Creating keyword summary files for ${
-        Object.keys(keywordData).length
-      } keywords`
-    );
+    Utils.log('info', `Creating keyword summary files for ${Object.keys(keywordData).length} keywords`);
 
     // Create keyword summary files
     for (const [keyword, data] of Object.entries(keywordData)) {
@@ -507,10 +454,7 @@ ${articlesList}
     }
 
     const vaultPath = this.getDateVaultPath(date);
-    Utils.log(
-      "info",
-      `Keyword output generation complete. Files created in: ${vaultPath}/word/`
-    );
+    Utils.log('info', `Keyword output generation complete. Files created in: ${vaultPath}/word/`);
   }
 }
 

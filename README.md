@@ -5,12 +5,14 @@ RSS feed processing system that runs on a local server and creates markdown file
 ## 🚀 Quick Start
 
 ### 1. Prerequisites
+
 - **Obsidian**: Enable Local REST API plugin
 - **Node.js**: 18 or higher
 - **Environment**: Obsidian running on local machine
 - **tmux**
 
 ### 2. Obsidian Setup
+
 ```bash
 # 1. Launch Obsidian
 # 2. Settings > Community plugins > Browse
@@ -19,6 +21,7 @@ RSS feed processing system that runs on a local server and creates markdown file
 ```
 
 ### 3. Project Setup
+
 ```bash
 # Install dependencies
 npm install
@@ -35,6 +38,7 @@ export OBSIDIAN_API_KEY="your-obsidian-api-key"
 ```
 
 ### 4. Execution
+
 ```bash
 # Manual execution
 npm run daemon
@@ -46,8 +50,8 @@ node src/main.js health
 node src/main.js test
 ```
 
-
 ## 📁 Output Directory
+
 ```
 Obsidian Vault/
 └── RSS/
@@ -60,6 +64,7 @@ Obsidian Vault/
 ```
 
 ### Optional Environment Variables
+
 - `RSS_FEEDS`: JSON array of RSS feed URLs (takes precedence over feeds.json)
 - `OBSIDIAN_API_URL`: Obsidian API URL (default: `https://127.0.0.1:27124/`)
 - `DEBUG`: Debug mode (default: `false`)

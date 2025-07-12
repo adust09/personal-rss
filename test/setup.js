@@ -41,14 +41,14 @@ global.testUtils = {
   }),
 
   // Sleep utility for integration tests
-  sleep: (ms) => new Promise(resolve => setTimeout(resolve, ms)),
+  sleep: ms => new Promise(resolve => setTimeout(resolve, ms)),
 
   // Environment variable helper
   withEnv: (envVars, testFn) => {
     const originalEnv = { ...process.env };
-    
+
     Object.assign(process.env, envVars);
-    
+
     try {
       return testFn();
     } finally {

@@ -172,7 +172,6 @@
       "category": "security/enterprise",
       "enabled": true
     }
-    
   ],
   "settings": {
     "defaultEnabled": false,

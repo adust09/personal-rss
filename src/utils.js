@@ -4,14 +4,14 @@
 
 const fs = require('fs').promises;
 const path = require('path');
-const { format, parseISO } = require('date-fns');
+const { format, parseISO: _parseISO } = require('date-fns');
 const config = require('./config');
 const { LIMITS, INDICES, TEXT } = require('./constants');
 
 class Utils {
   /**
    * Sleep/delay function
-   * @param {number} milliseconds 
+   * @param {number} milliseconds
    */
   static async sleep(milliseconds) {
     return new Promise(resolve => setTimeout(resolve, milliseconds));
@@ -19,7 +19,7 @@ class Utils {
 
   /**
    * Format date for file naming
-   * @param {Date} date 
+   * @param {Date} date
    * @returns {string} YYYY-MM-DD format
    */
   static formatDate(date = new Date()) {
@@ -28,7 +28,7 @@ class Utils {
 
   /**
    * Format date for Japanese display
-   * @param {Date} date 
+   * @param {Date} date
    * @returns {string} YYYY年MM月DD日 format
    */
   static formatDateJapanese(date = new Date()) {
@@ -37,7 +37,7 @@ class Utils {
 
   /**
    * Format date with hour for file naming
-   * @param {Date} date 
+   * @param {Date} date
    * @returns {string} YYYY-MM-DD-HH format
    */
   static formatDateWithHour(date = new Date()) {
@@ -46,7 +46,7 @@ class Utils {
 
   /**
    * Get current hour
-   * @param {Date} date 
+   * @param {Date} date
    * @returns {string} HH format
    */
   static getCurrentHour(date = new Date()) {
@@ -55,7 +55,7 @@ class Utils {
 
   /**
    * Create directory if it doesn't exist
-   * @param {string} dirPath 
+   * @param {string} dirPath
    */
   static async ensureDirectory(dirPath) {
     try {
@@ -72,8 +72,8 @@ class Utils {
 
   /**
    * Write file with proper error handling and directory creation
-   * @param {string} filePath 
-   * @param {string} content 
+   * @param {string} filePath
+   * @param {string} content
    */
   static async writeFile(filePath, content) {
     const dir = path.dirname(filePath);
@@ -89,7 +89,12 @@ class Utils {
    * @param {number} baseDelay Base delay in milliseconds
    * @param {string} operationName Name for logging
    */
-  static async retry(fn, maxRetries = config.getMaxRetries(), baseDelay = config.getRetryDelay(), operationName = 'operation') {
+  static async retry(
+    fn,
+    maxRetries = config.getMaxRetries(),
+    baseDelay = config.getRetryDelay(),
+    operationName = 'operation'
+  ) {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn();
@@ -98,7 +103,7 @@ class Utils {
           console.error(`${operationName} failed after ${maxRetries + 1} attempts:`, error.message);
           throw error;
         }
-        
+
         const delay = baseDelay * Math.pow(2, attempt);
         console.warn(`${operationName} attempt ${attempt + 1} failed, retrying in ${delay}ms:`, error.message);
         await this.sleep(delay);
@@ -108,14 +113,14 @@ class Utils {
 
   /**
    * Log with timestamp
-   * @param {string} level 
-   * @param {string} message 
-   * @param {any} data 
+   * @param {string} level
+   * @param {string} message
+   * @param {any} data
    */
   static log(level, message, data = null) {
     const timestamp = new Date().toISOString();
     const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-    
+
     if (level === 'error') {
       console.error(logMessage, data || '');
     } else if (level === 'warn') {
@@ -127,19 +132,16 @@ class Utils {
 
   /**
    * Sanitize filename by removing invalid characters
-   * @param {string} filename 
+   * @param {string} filename
    * @returns {string}
    */
   static sanitizeFilename(filename) {
-    return filename
-      .replace(TEXT.INVALID_FILENAME_CHARS_REGEX, '')
-      .replace(TEXT.WHITESPACE_REGEX, '-')
-      .toLowerCase();
+    return filename.replace(TEXT.INVALID_FILENAME_CHARS_REGEX, '').replace(TEXT.WHITESPACE_REGEX, '-').toLowerCase();
   }
 
   /**
    * Generate YAML frontmatter
-   * @param {Object} metadata 
+   * @param {Object} metadata
    * @returns {string}
    */
   static generateYamlFrontmatter(metadata) {
@@ -149,8 +151,8 @@ class Utils {
 
   /**
    * Group array items by a key function
-   * @param {Array} array 
-   * @param {Function} keyFn 
+   * @param {Array} array
+   * @param {Function} keyFn
    * @returns {Object}
    */
   static groupBy(array, keyFn) {
@@ -166,8 +168,8 @@ class Utils {
 
   /**
    * Truncate text to specified length
-   * @param {string} text 
-   * @param {number} maxLength 
+   * @param {string} text
+   * @param {number} maxLength
    * @returns {string}
    */
   static truncate(text, maxLength = LIMITS.DEFAULT_TEXT_TRUNCATE_LENGTH) {
@@ -177,7 +179,7 @@ class Utils {
 
   /**
    * Clean HTML tags from text
-   * @param {string} html 
+   * @param {string} html
    * @returns {string}
    */
   static stripHtml(html) {
@@ -186,13 +188,13 @@ class Utils {
 
   /**
    * Load template file
-   * @param {string} templateName 
+   * @param {string} templateName
    * @returns {Promise<string>}
    */
   static async loadTemplate(templateName) {
     const config = require('./config');
     const templatePath = path.join(config.getTemplatesDirectory(), templateName);
-    
+
     try {
       const template = await fs.readFile(templatePath, 'utf8');
       return template;
@@ -203,18 +205,18 @@ class Utils {
 
   /**
    * Replace template variables with values
-   * @param {string} template 
-   * @param {Object} variables 
+   * @param {string} template
+   * @param {Object} variables
    * @returns {string}
    */
   static replaceTemplateVariables(template, variables) {
     let result = template;
-    
+
     // Handle conditional blocks ({{#variable}} ... {{/variable}})
     Object.keys(variables).forEach(key => {
       const value = variables[key];
       const conditionalRegex = new RegExp(`{{#${key}}}([\\s\\S]*?){{/${key}}}`, 'g');
-      
+
       if (value && value.toString().trim()) {
         // Replace conditional block with content, then replace variable
         result = result.replace(conditionalRegex, '$1');
@@ -224,32 +226,32 @@ class Utils {
         result = result.replace(conditionalRegex, '');
       }
     });
-    
+
     // Replace simple variables ({{variable}})
     Object.keys(variables).forEach(key => {
       const value = variables[key] || '';
       result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
     });
-    
+
     return result;
   }
 
   /**
    * Load prompt file and extract content
-   * @param {string} promptName 
+   * @param {string} promptName
    * @returns {Promise<string>}
    */
   static async loadPrompt(promptName) {
     const config = require('./config');
     const promptPath = path.join(config.getPromptsDirectory(), promptName);
-    
+
     try {
       const content = await fs.readFile(promptPath, 'utf8');
-      
+
       // Extract content after YAML frontmatter
       const frontmatterRegex = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/;
       const match = content.match(frontmatterRegex);
-      
+
       if (match) {
         return match[2].trim(); // Return content after frontmatter
       } else {
@@ -262,19 +264,19 @@ class Utils {
 
   /**
    * Replace prompt variables with values
-   * @param {string} prompt 
-   * @param {Object} variables 
+   * @param {string} prompt
+   * @param {Object} variables
    * @returns {string}
    */
   static replacePromptVariables(prompt, variables) {
     let result = prompt;
-    
+
     // Replace simple variables ({{variable}})
     Object.keys(variables).forEach(key => {
       const value = variables[key] || '';
       result = result.replace(new RegExp(`{{${key}}}`, 'g'), value);
     });
-    
+
     return result;
   }
 }

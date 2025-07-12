@@ -18,29 +18,29 @@ class LLMProcessor {
 
   /**
    * Make a request to Gemini API with retry logic
-   * @param {string} prompt 
+   * @param {string} prompt
    * @returns {Promise<string>} API response text
    */
   async makeGeminiRequest(prompt) {
     const requestBody = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }]
+      contents: [
+        {
+          parts: [
+            {
+              text: prompt
+            }
+          ]
+        }
+      ]
     };
 
     try {
-      const response = await axios.post(
-        `${this.baseUrl}?key=${this.apiKey}`,
-        requestBody,
-        {
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          timeout: TIMEOUT.GEMINI_API
-        }
-      );
+      const response = await axios.post(`${this.baseUrl}?key=${this.apiKey}`, requestBody, {
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        timeout: TIMEOUT.GEMINI_API
+      });
 
       if (response.data?.candidates?.[0]?.content?.parts?.[0]?.text) {
         return response.data.candidates[0].content.parts[0].text;
@@ -59,7 +59,7 @@ class LLMProcessor {
 
   /**
    * Tag articles with hierarchical categories
-   * @param {Array<Object>} articles 
+   * @param {Array<Object>} articles
    * @returns {Promise<Array<Object>>} Articles with tags
    */
   async tagArticles(articles) {
@@ -74,7 +74,7 @@ class LLMProcessor {
 
     for (let i = 0; i < articles.length; i++) {
       const article = articles[i];
-      
+
       try {
         // Rate limiting
         if (i > 0) {
@@ -82,17 +82,19 @@ class LLMProcessor {
         }
 
         const tags = await this.getArticleTags(article);
-        
+
         taggedArticles.push({
           ...article,
           tags: tags
         });
 
-        Utils.log('info', `Tagged article ${i + 1}/${articles.length}: "${Utils.truncate(article.title)}" -> [${tags.join(', ')}]`);
-        
+        Utils.log(
+          'info',
+          `Tagged article ${i + 1}/${articles.length}: "${Utils.truncate(article.title)}" -> [${tags.join(', ')}]`
+        );
       } catch (error) {
         Utils.log('error', `Failed to tag article "${Utils.truncate(article.title)}":`, error.message);
-        
+
         // Add article with fallback tag
         taggedArticles.push({
           ...article,
@@ -107,14 +109,14 @@ class LLMProcessor {
 
   /**
    * Get tags for a single article
-   * @param {Object} article 
+   * @param {Object} article
    * @returns {Promise<Array<string>>} Array of tags
    */
   async getArticleTags(article) {
     // Load prompt template and replace variables
     const promptTemplate = await Utils.loadPrompt('tagging.md');
     const formattedTagList = config.getFormattedTagList();
-    
+
     const prompt = Utils.replacePromptVariables(promptTemplate, {
       title: article.title,
       description: article.description,
@@ -140,13 +142,13 @@ class LLMProcessor {
 
     // Process hierarchical tags
     const processedTags = this.processHierarchicalTags(rawTags);
-    
+
     return processedTags.length > 0 ? processedTags : [tagConfig.defaultTag];
   }
 
   /**
    * Group articles by parent tags (from feeds)
-   * @param {Array<Object>} articles 
+   * @param {Array<Object>} articles
    * @returns {Object} Articles grouped by parent tags
    */
   groupArticlesByParentTags(articles) {
@@ -154,7 +156,7 @@ class LLMProcessor {
 
     for (const article of articles) {
       const parentTag = article.feedParentTag || DEFAULTS.PARENT_TAG; // Default to tech if not specified
-      
+
       if (!grouped[parentTag]) {
         grouped[parentTag] = [];
       }
@@ -167,14 +169,14 @@ class LLMProcessor {
     }
 
     Utils.log('info', `Grouped articles into ${Object.keys(grouped).length} parent tag categories`);
-    
+
     return grouped;
   }
 
   /**
    * Generate Japanese summary for a group of articles
-   * @param {string} tag 
-   * @param {Array<Object>} articles 
+   * @param {string} tag
+   * @param {Array<Object>} articles
    * @returns {Promise<string>} Japanese summary
    */
   async generateSummary(tag, articles) {
@@ -196,7 +198,7 @@ class LLMProcessor {
 
     try {
       await Utils.sleep(this.requestDelay);
-      
+
       const summary = await Utils.retry(
         () => this.makeGeminiRequest(prompt),
         config.getMaxRetries(),
@@ -205,9 +207,8 @@ class LLMProcessor {
       );
 
       Utils.log('info', `Generated summary for ${tag} (${articles.length} articles)`);
-      
+
       return summary.trim();
-      
     } catch (error) {
       Utils.log('error', `Failed to generate summary for ${tag}:`, error.message);
       return `${tag}カテゴリの記事 ${articles.length}件を収集しました。詳細は各記事をご確認ください。`;
@@ -216,7 +217,7 @@ class LLMProcessor {
 
   /**
    * Process all articles: group by parent tags and generate summaries
-   * @param {Array<Object>} articles 
+   * @param {Array<Object>} articles
    * @returns {Promise<Object>} Processed data with summaries
    */
   async processArticles(articles) {
@@ -240,7 +241,7 @@ class LLMProcessor {
       }
 
       const summary = await this.generateSummary(parentTag, tagArticles);
-      
+
       processedData[parentTag] = {
         articles: tagArticles,
         summary: summary,
@@ -248,15 +249,18 @@ class LLMProcessor {
       };
     }
 
-    Utils.log('info', `Parent tag processing complete. Generated ${Object.keys(processedData).length} parent tag summaries`);
-    
+    Utils.log(
+      'info',
+      `Parent tag processing complete. Generated ${Object.keys(processedData).length} parent tag summaries`
+    );
+
     return processedData;
   }
 
   /**
    * Filter articles that contain any of the watch words
-   * @param {Array<Object>} articles 
-   * @param {Array<string>} watchWords 
+   * @param {Array<Object>} articles
+   * @param {Array<string>} watchWords
    * @returns {Object} Articles grouped by keywords
    */
   filterArticlesByKeywords(articles, watchWords) {
@@ -274,7 +278,7 @@ class LLMProcessor {
       // Check each watch word
       for (const keyword of watchWords) {
         const keywordLower = keyword.toLowerCase();
-        
+
         // Check if article content contains the keyword
         if (content.includes(keywordLower)) {
           if (!keywordArticles[keyword]) {
@@ -293,15 +297,18 @@ class LLMProcessor {
       }
     });
 
-    Utils.log('info', `Found articles for ${Object.keys(keywordArticles).length} keywords: ${Object.keys(keywordArticles).join(', ')}`);
-    
+    Utils.log(
+      'info',
+      `Found articles for ${Object.keys(keywordArticles).length} keywords: ${Object.keys(keywordArticles).join(', ')}`
+    );
+
     return keywordArticles;
   }
 
   /**
    * Generate keyword-specific summary
-   * @param {string} keyword 
-   * @param {Array<Object>} articles 
+   * @param {string} keyword
+   * @param {Array<Object>} articles
    * @returns {Promise<string>} Generated summary
    */
   async generateKeywordSummary(keyword, articles) {
@@ -329,7 +336,7 @@ class LLMProcessor {
         RETRY.KEYWORD_SUMMARY_RETRIES,
         RETRY.KEYWORD_SUMMARY_RETRY_DELAY
       );
-      
+
       const summary = response.trim();
       Utils.log('info', `Generated keyword summary for "${keyword}" (${summary.length} characters)`);
       return summary;
@@ -341,20 +348,20 @@ class LLMProcessor {
 
   /**
    * Process hierarchical tags from raw tag response
-   * @param {Array<string>} rawTags 
+   * @param {Array<string>} rawTags
    * @returns {Array<string>} Processed hierarchical tags
    */
   processHierarchicalTags(rawTags) {
     const availableParentTags = config.getAvailableParentTags();
     const processedTags = new Set();
-    
+
     for (const rawTag of rawTags) {
       // Check if it's a parent tag
       if (availableParentTags.includes(rawTag)) {
         processedTags.add(rawTag);
         continue;
       }
-      
+
       // Check if it's a subtag and find its parent
       let foundParent = false;
       for (const parentTag of availableParentTags) {
@@ -366,7 +373,7 @@ class LLMProcessor {
           break;
         }
       }
-      
+
       // If not found in any category, try to match as close as possible
       if (!foundParent) {
         const closestParent = this.findClosestParentTag(rawTag);
@@ -375,43 +382,53 @@ class LLMProcessor {
         }
       }
     }
-    
+
     return Array.from(processedTags);
   }
-  
+
   /**
    * Find the closest parent tag for an unknown tag
-   * @param {string} unknownTag 
+   * @param {string} unknownTag
    * @returns {string|null} Closest parent tag or null
    */
   findClosestParentTag(unknownTag) {
     const availableParentTags = config.getAvailableParentTags();
-    
+
     // Simple keyword matching
     const tagLower = unknownTag.toLowerCase();
-    
+
     // AI-related keywords
-    if (['ai', 'artificial', 'intelligence', 'machine', 'learning', 'ml', 'llm', 'gpt', 'neural', 'deep'].some(keyword => tagLower.includes(keyword))) {
+    if (
+      ['ai', 'artificial', 'intelligence', 'machine', 'learning', 'ml', 'llm', 'gpt', 'neural', 'deep'].some(keyword =>
+        tagLower.includes(keyword)
+      )
+    ) {
       return 'ai';
     }
-    
+
     // Tech-related keywords
-    if (['tech', 'technology', 'software', 'programming', 'code', 'development', 'web', 'mobile', 'app'].some(keyword => tagLower.includes(keyword))) {
+    if (
+      ['tech', 'technology', 'software', 'programming', 'code', 'development', 'web', 'mobile', 'app'].some(keyword =>
+        tagLower.includes(keyword)
+      )
+    ) {
       return 'tech';
     }
-    
+
     // Business-related keywords
-    if (['business', 'startup', 'company', 'market', 'finance', 'investment'].some(keyword => tagLower.includes(keyword))) {
+    if (
+      ['business', 'startup', 'company', 'market', 'finance', 'investment'].some(keyword => tagLower.includes(keyword))
+    ) {
       return 'business';
     }
-    
+
     // Default to first available parent tag
     return availableParentTags[INDICES.FIRST_PARENT_TAG_INDEX] || null;
   }
 
   /**
    * Process articles for keyword-based filtering and summarization
-   * @param {Array<Object>} articles 
+   * @param {Array<Object>} articles
    * @returns {Promise<Object>} Processed keyword data
    */
   async processKeywordArticles(articles) {
@@ -428,7 +445,10 @@ class LLMProcessor {
       return {};
     }
 
-    Utils.log('info', `Starting keyword processing for ${articles.length} articles with ${watchWords.length} watch words: ${watchWords.join(', ')}`);
+    Utils.log(
+      'info',
+      `Starting keyword processing for ${articles.length} articles with ${watchWords.length} watch words: ${watchWords.join(', ')}`
+    );
 
     // Filter articles by keywords
     const keywordArticles = this.filterArticlesByKeywords(articles, watchWords);
@@ -447,7 +467,7 @@ class LLMProcessor {
       }
 
       const summary = await this.generateKeywordSummary(keyword, keywordMatchedArticles);
-      
+
       processedData[keyword] = {
         articles: keywordMatchedArticles,
         summary: summary,
@@ -456,7 +476,7 @@ class LLMProcessor {
     }
 
     Utils.log('info', `Keyword processing complete. Generated ${Object.keys(processedData).length} keyword summaries`);
-    
+
     return processedData;
   }
 }

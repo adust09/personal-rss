@@ -27,9 +27,7 @@ class RetryManager {
     for (let attempt = 1; attempt <= maxRetries + 1; attempt++) {
       try {
         // Apply timeout if specified
-        const result = timeout 
-          ? await this.withTimeout(fn, timeout, operation)
-          : await fn();
+        const result = timeout ? await this.withTimeout(fn, timeout, operation) : await fn();
 
         if (logSuccess && attempt > 1) {
           ErrorHandler.logSuccess(operation, context, `succeeded on attempt ${attempt}`);
@@ -38,20 +36,13 @@ class RetryManager {
         return result;
       } catch (error) {
         if (attempt <= maxRetries) {
-          const delay = useExponentialBackoff 
-            ? baseDelay * Math.pow(2, attempt - 1)
-            : baseDelay;
+          const delay = useExponentialBackoff ? baseDelay * Math.pow(2, attempt - 1) : baseDelay;
 
           ErrorHandler.logError(operation, error, context, attempt, 'warn');
           await this.sleep(delay);
         } else {
           ErrorHandler.logError(operation, error, context, attempt, 'error');
-          throw ErrorHandler.createError(
-            operation, 
-            `Failed after ${maxRetries + 1} attempts`, 
-            context, 
-            error
-          );
+          throw ErrorHandler.createError(operation, `Failed after ${maxRetries + 1} attempts`, context, error);
         }
       }
     }
@@ -65,19 +56,20 @@ class RetryManager {
    * @returns {Promise} Function result
    */
   static async withTimeout(fn, timeoutMs, operation) {
-    return new Promise(async (resolve, reject) => {
+    return new Promise((resolve, reject) => {
       const timeoutId = setTimeout(() => {
         reject(new Error(`${operation} timed out after ${timeoutMs}ms`));
       }, timeoutMs);
 
-      try {
-        const result = await fn();
-        clearTimeout(timeoutId);
-        resolve(result);
-      } catch (error) {
-        clearTimeout(timeoutId);
-        reject(error);
-      }
+      fn()
+        .then(result => {
+          clearTimeout(timeoutId);
+          resolve(result);
+        })
+        .catch(error => {
+          clearTimeout(timeoutId);
+          reject(error);
+        });
     });
   }
 
@@ -153,24 +145,18 @@ class RetryManager {
    * @returns {Promise<Array>} Array of results
    */
   static async executeBatch(operations, options = {}) {
-    const { 
-      concurrent = false, 
-      failFast = false,
-      logProgress = true 
-    } = options;
+    const { concurrent = false, failFast = false, logProgress = true } = options;
 
     if (concurrent) {
       if (failFast) {
-        return Promise.all(operations.map(op => 
-          this.executeWithRetry(op.operation, op.fn, op.options || {})
-        ));
+        return Promise.all(operations.map(op => this.executeWithRetry(op.operation, op.fn, op.options || {})));
       } else {
-        const results = await Promise.allSettled(operations.map(op => 
-          this.executeWithRetry(op.operation, op.fn, op.options || {})
-        ));
-        return results.map(result => 
-          result.status === 'fulfilled' ? result.value : null
-        ).filter(result => result !== null);
+        const results = await Promise.allSettled(
+          operations.map(op => this.executeWithRetry(op.operation, op.fn, op.options || {}))
+        );
+        return results
+          .map(result => (result.status === 'fulfilled' ? result.value : null))
+          .filter(result => result !== null);
       }
     } else {
       const results = [];

@@ -56,14 +56,14 @@ describe('Scheduler', () => {
   describe('isValidCronExpression', () => {
     test('should return true for valid cron expressions', () => {
       cron.validate.mockReturnValue(true);
-      
+
       expect(scheduler.isValidCronExpression('0 */12 * * *')).toBe(true);
       expect(cron.validate).toHaveBeenCalledWith('0 */12 * * *');
     });
 
     test('should return false for invalid cron expressions', () => {
       cron.validate.mockReturnValue(false);
-      
+
       expect(scheduler.isValidCronExpression('invalid')).toBe(false);
       expect(cron.validate).toHaveBeenCalledWith('invalid');
     });
@@ -74,14 +74,10 @@ describe('Scheduler', () => {
       scheduler.start();
 
       expect(cron.validate).toHaveBeenCalledWith('0 */12 * * *');
-      expect(cron.schedule).toHaveBeenCalledWith(
-        '0 */12 * * *',
-        expect.any(Function),
-        {
-          scheduled: false,
-          timezone: 'Asia/Tokyo'
-        }
-      );
+      expect(cron.schedule).toHaveBeenCalledWith('0 */12 * * *', expect.any(Function), {
+        scheduled: false,
+        timezone: 'Asia/Tokyo'
+      });
       expect(mockTask.start).toHaveBeenCalled();
       expect(scheduler.isRunning).toBe(true);
       expect(scheduler.task).toBe(mockTask);
@@ -122,7 +118,7 @@ describe('Scheduler', () => {
 
     test('should handle stopping when not running', () => {
       expect(scheduler.isRunning).toBe(false);
-      
+
       scheduler.stop();
 
       expect(mockTask.stop).not.toHaveBeenCalled();
@@ -149,8 +145,8 @@ describe('Scheduler', () => {
 
   describe('executeTask', () => {
     test('should execute RSS feeder successfully', async () => {
-      const startTime = new Date();
-      
+      const _startTime = new Date();
+
       await scheduler.executeTask();
 
       expect(mockRSSFeeder.run).toHaveBeenCalled();
@@ -173,14 +169,14 @@ describe('Scheduler', () => {
       const error = new Error('RSS feeder failed');
       mockRSSFeeder.run.mockRejectedValue(error);
       config.isDebugMode = jest.fn().mockReturnValue(true);
-      
+
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
 
       await scheduler.executeTask();
 
       expect(Utils.log).toHaveBeenCalledWith('error', '❌ Scheduled execution failed:', 'RSS feeder failed');
       expect(consoleSpy).toHaveBeenCalledWith('Full error details:', error);
-      
+
       consoleSpy.mockRestore();
     });
   });
@@ -189,7 +185,7 @@ describe('Scheduler', () => {
     test('should log next execution times for 12-hour schedule', () => {
       const cronSchedule = '0 */12 * * *';
       const timezone = 'Asia/Tokyo';
-      
+
       scheduler.logNextExecutions(cronSchedule, timezone, 3);
 
       // Should log 3 execution times
@@ -201,7 +197,7 @@ describe('Scheduler', () => {
     test('should handle errors gracefully', () => {
       const cronSchedule = 'invalid';
       const timezone = 'Asia/Tokyo';
-      
+
       // The function doesn't actually throw errors for invalid cron in current implementation
       // It just logs the times. This test verifies it doesn't crash.
       expect(() => {

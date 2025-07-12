@@ -35,7 +35,7 @@ describe('Daemon', () => {
   beforeEach(() => {
     // Reset all mocks
     jest.clearAllMocks();
-    
+
     // Remove all listeners to prevent conflicts
     process.removeAllListeners('SIGTERM');
     process.removeAllListeners('SIGINT');
@@ -105,9 +105,12 @@ describe('Daemon', () => {
 
       await daemon.start();
 
-      expect(Utils.log).toHaveBeenCalledWith('error', 'Scheduler is not enabled. Set SCHEDULE_ENABLED=true to use daemon mode.');
+      expect(Utils.log).toHaveBeenCalledWith(
+        'error',
+        'Scheduler is not enabled. Set SCHEDULE_ENABLED=true to use daemon mode.'
+      );
       expect(mockProcessExit).toHaveBeenCalledWith(1);
-      // Since process.exit(1) is called before scheduler.start(), we expect the scheduler 
+      // Since process.exit(1) is called before scheduler.start(), we expect the scheduler
       // was created during constructor but start() was never reached
     });
 
@@ -181,7 +184,7 @@ describe('Daemon', () => {
     test('should handle multiple stop calls gracefully', async () => {
       // First stop call
       const firstStopPromise = daemon.stop();
-      
+
       // Second stop call while first is in progress
       const secondStopPromise = daemon.stop();
 
@@ -230,7 +233,7 @@ describe('Daemon', () => {
 
       // Get the SIGTERM handler
       const sigtermHandler = mockProcessOn.mock.calls.find(call => call[0] === 'SIGTERM')[1];
-      
+
       sigtermHandler();
 
       expect(Utils.log).toHaveBeenCalledWith('info', 'Received SIGTERM signal');
@@ -243,7 +246,7 @@ describe('Daemon', () => {
 
       // Get the SIGINT handler
       const sigintHandler = mockProcessOn.mock.calls.find(call => call[0] === 'SIGINT')[1];
-      
+
       sigintHandler();
 
       expect(Utils.log).toHaveBeenCalledWith('info', 'Received SIGINT signal');
@@ -257,7 +260,7 @@ describe('Daemon', () => {
 
       const error = new Error('Uncaught error');
       const uncaughtHandler = mockProcessOn.mock.calls.find(call => call[0] === 'uncaughtException')[1];
-      
+
       uncaughtHandler(error);
 
       expect(Utils.log).toHaveBeenCalledWith('error', 'Uncaught exception:', 'Uncaught error');
@@ -268,15 +271,15 @@ describe('Daemon', () => {
       const daemon = new Daemon();
       daemon.stop = jest.fn();
       config.isDebugMode = jest.fn().mockReturnValue(true);
-      
+
       const consoleSpy = jest.spyOn(console, 'error').mockImplementation();
       const error = new Error('Uncaught error');
       const uncaughtHandler = mockProcessOn.mock.calls.find(call => call[0] === 'uncaughtException')[1];
-      
+
       uncaughtHandler(error);
 
       expect(consoleSpy).toHaveBeenCalledWith('Full error details:', error);
-      
+
       consoleSpy.mockRestore();
     });
   });

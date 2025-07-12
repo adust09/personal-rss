@@ -28,6 +28,12 @@ pids
 # Coverage directory used by tools like istanbul
 coverage/
 
+# ESLint cache
+.eslintcache
+
+# Prettier cache
+.prettier-cache
+
 # macOS
 .DS_Store
 
