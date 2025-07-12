@@ -6,6 +6,7 @@
 const cron = require('node-cron');
 const config = require('./config');
 const Utils = require('./utils');
+const { INDICES, CRON } = require('./constants');
 
 class Scheduler {
   constructor(rssFeeder) {
@@ -29,7 +30,7 @@ class Scheduler {
     Utils.log('info', '📅 Next execution times:');
     
     // Show next 3 execution times
-    this.logNextExecutions(cronSchedule, timezone, 3);
+    this.logNextExecutions(cronSchedule, timezone, INDICES.NEXT_EXECUTIONS_DISPLAY_COUNT);
 
     this.task = cron.schedule(cronSchedule, async () => {
       await this.executeTask();
@@ -108,7 +109,7 @@ class Scheduler {
       const times = [];
       
       // For 12-hour schedule (0 */12 * * *), show next 3 executions
-      if (cronSchedule === '0 */12 * * *') {
+      if (cronSchedule === CRON.TWELVE_HOUR_INTERVAL) {
         const currentHour = now.getHours();
         let nextHour = currentHour < 12 ? 12 : 24; // Next 12:00 or 00:00
         

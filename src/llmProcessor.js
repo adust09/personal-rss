@@ -6,6 +6,7 @@
 const axios = require('axios');
 const Utils = require('./utils');
 const config = require('./config');
+const { TIMEOUT, LIMITS, FALLBACKS, RETRY, DEFAULTS, INDICES } = require('./constants');
 
 class LLMProcessor {
   constructor() {
@@ -37,7 +38,7 @@ class LLMProcessor {
           headers: {
             'Content-Type': 'application/json'
           },
-          timeout: 30000
+          timeout: TIMEOUT.GEMINI_API
         }
       );
 
@@ -95,7 +96,7 @@ class LLMProcessor {
         // Add article with fallback tag
         taggedArticles.push({
           ...article,
-          tags: ['uncategorized']
+          tags: FALLBACKS.TAGS
         });
       }
     }
@@ -152,7 +153,7 @@ class LLMProcessor {
     const grouped = {};
 
     for (const article of articles) {
-      const parentTag = article.feedParentTag || 'tech'; // Default to tech if not specified
+      const parentTag = article.feedParentTag || DEFAULTS.PARENT_TAG; // Default to tech if not specified
       
       if (!grouped[parentTag]) {
         grouped[parentTag] = [];
@@ -182,7 +183,7 @@ class LLMProcessor {
     }
 
     const articleList = articles
-      .slice(0, 10) // Limit to top 10 articles to avoid token limits
+      .slice(0, LIMITS.SUMMARY_ARTICLES) // Limit to top 10 articles to avoid token limits
       .map(article => `- ${article.title}\n  ${article.description || '説明なし'}`)
       .join('\n\n');
 
@@ -325,8 +326,8 @@ class LLMProcessor {
       await Utils.sleep(this.requestDelay);
       const response = await Utils.retry(
         () => this.makeGeminiRequest(prompt),
-        3,
-        2000
+        RETRY.KEYWORD_SUMMARY_RETRIES,
+        RETRY.KEYWORD_SUMMARY_RETRY_DELAY
       );
       
       const summary = response.trim();
@@ -405,7 +406,7 @@ class LLMProcessor {
     }
     
     // Default to first available parent tag
-    return availableParentTags[0] || null;
+    return availableParentTags[INDICES.FIRST_PARENT_TAG_INDEX] || null;
   }
 
   /**
