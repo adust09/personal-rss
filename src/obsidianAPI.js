@@ -182,10 +182,13 @@ class ObsidianAPI {
     // Format tags
     let formattedTags = "";
     if (article.tags && article.tags.length > 0) {
-      const tags = article.tags.map(tag => {
-        if (tag.includes('/')) {
+      const tags = article.tags.map((tag) => {
+        if (tag.includes("/")) {
           // Split hierarchical tags: tech/ai -> #tech #ai
-          return tag.split('/').map(part => `#${part}`).join(' ');
+          return tag
+            .split("/")
+            .map((part) => `#${part}`)
+            .join(" ");
         } else {
           // Single tag: business -> #business
           return `#${tag}`;
@@ -203,7 +206,10 @@ class ObsidianAPI {
       feedTitle: article.feedTitle || null,
       creator: article.creator || null,
       pubDate: this.formatDateForDisplay(article.pubDate),
-      description: article.description && article.description.trim() ? article.description : null,
+      description:
+        article.description && article.description.trim()
+          ? article.description
+          : null,
       tags: formattedTags || null,
     };
 
@@ -216,12 +222,12 @@ class ObsidianAPI {
    * @returns {Promise<string>} Formatted articles list
    */
   async generateArticlesList(articles) {
-    const articlePromises = articles.map((article, index) => 
+    const articlePromises = articles.map((article, index) =>
       this.generateSingleArticle(article, index + 1)
     );
-    
+
     const formattedArticles = await Promise.all(articlePromises);
-    return formattedArticles.join('\n');
+    return formattedArticles.join("\n");
   }
 
   /**
